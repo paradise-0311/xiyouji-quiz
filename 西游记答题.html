@@ -91,28 +91,118 @@
   .tag.rec { background:#e8f5e9; color:#2e7d32; }
   .tag.dom { background:#e3f2fd; color:#1565c0; }
   .tag.int { background:#fce4ec; color:#c62828; }
+  
+  /* ===== 1. 加载动画 ===== */
+  .loading-overlay { position:fixed; inset:0; background:#f7f3e8; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; transition:opacity 0.5s ease; }
+  .loading-overlay.done { opacity:0; pointer-events:none; }
+  .loading-cloud { width:80px; height:80px; border:4px solid #e8e0d0; border-top-color:#c43b3b; border-radius:50%; animation:spin 1s linear infinite; }
+  @keyframes spin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
+  .loading-text { margin-top:20px; font-size:18px; color:#5d4037; }
+  .loading-sub { margin-top:8px; font-size:14px; color:#8d6e63; }
+  
+  /* ===== 2. 倒计时紧迫感 ===== */
+  .timer-bar.urgent { background:linear-gradient(90deg, #ff5252, #d32f2f) !important; animation:pulse 0.8s ease infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+  .timer-num.urgent { color:#c62828; font-weight:bold; animation:pulse 0.8s ease infinite; }
+  
+  /* ===== 4. 分享海报 ===== */
+  .share-poster { background:linear-gradient(135deg, #fff8e1 0%, #fff 100%); border:2px solid #d4a843; border-radius:12px; padding:20px; text-align:center; position:relative; overflow:hidden; }
+  .share-poster::before { content:""; position:absolute; top:-20px; right:-20px; width:80px; height:80px; background:rgba(212,168,67,0.15); border-radius:50%; }
+  .share-poster .poster-title { font-size:22px; color:#b71c1c; font-weight:bold; margin-bottom:8px; }
+  .share-poster .poster-name { font-size:16px; color:#5d4037; margin-bottom:12px; }
+  .share-poster .poster-score { font-size:48px; color:#c43b3b; font-weight:bold; line-height:1; }
+  .share-poster .poster-title-name { font-size:20px; color:#d4a843; margin:10px 0; }
+  .share-poster .poster-stats { font-size:14px; color:#8d6e63; margin-top:12px; line-height:1.8; }
+  .share-poster .poster-footer { font-size:13px; color:#8d6e63; margin-top:16px; padding-top:12px; border-top:1px dashed #d4a843; }
+  
+  /* ===== 5. 首页视觉升级 ===== */
+  .home-deco { text-align:center; margin-bottom:16px; font-size:40px; animation:float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+  .mode-card { display:flex; align-items:center; gap:12px; padding:14px; border:2px solid #e8e0d0; border-radius:10px; cursor:pointer; transition:all 0.2s; background:#fff; margin-bottom:10px; }
+  .mode-card:hover, .mode-card.active { border-color:#c43b3b; background:#fff8f8; }
+  .mode-card .mode-icon { font-size:28px; }
+  .mode-card .mode-info { flex:1; }
+  .mode-card .mode-name { font-size:15px; font-weight:bold; color:#3e2723; }
+  .mode-card .mode-desc { font-size:13px; color:#8d6e63; }
+  
+  /* ===== 6. 答题游戏化 ===== */
+  .float-score { position:fixed; font-size:24px; font-weight:bold; color:#4caf50; pointer-events:none; z-index:999; animation:floatUp 1s ease forwards; text-shadow:0 2px 4px rgba(0,0,0,0.2); }
+  @keyframes floatUp { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-60px) scale(1.3); } }
+  .float-wrong { color:#f44336 !important; }
+  .egg-tip { margin-top:16px; padding:12px; background:#e3f2fd; border-radius:8px; font-size:14px; color:#1565c0; display:none; animation:fadeIn 0.5s ease; }
+  .egg-tip.show { display:block; }
+  
+  /* ===== 7. 实时排名奖杯 ===== */
+  .trophy-card { background:linear-gradient(135deg, #fff8e1 0%, #fff 50%, #fff8e1 100%); border:2px solid #d4a843; border-radius:12px; padding:20px; text-align:center; }
+  .trophy-icon { font-size:48px; margin-bottom:8px; }
+  .trophy-rank { font-size:32px; color:#b71c1c; font-weight:bold; }
+  .trophy-detail { font-size:14px; color:#8d6e63; margin-top:8px; }
+  .trophy-bar { width:100%; height:8px; background:#e8e0d0; border-radius:4px; margin-top:12px; overflow:hidden; }
+  .trophy-bar-fill { height:100%; background:linear-gradient(90deg, #d4a843, #c43b3b); border-radius:4px; transition:width 1s ease; }
+  
+  /* ===== 9. 背景音乐 ===== */
+  .music-btn { position:fixed; bottom:20px; right:20px; width:44px; height:44px; border-radius:50%; background:#fff; border:2px solid #d4a843; font-size:20px; display:flex; justify-content:center; align-items:center; cursor:pointer; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+  .music-btn.playing { animation:spin 3s linear infinite; }
 </style>
 </head>
 <body>
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-cloud"></div>
+  <div class="loading-text">🐵 大圣正在取经路上...</div>
+  <div class="loading-sub">200题题库加载中</div>
+</div>
 <div class="toast" id="toast"></div>
 <div class="warn-overlay" id="warnOverlay"><h2>⚠️ 警告</h2><p id="warnText">检测到切屏行为，请勿切换页面！</p></div>
 
 <div id="homePage" class="page active">
-  <div class="header"><h1>《西游记》知识闯关</h1><div class="subtitle">初中语文名著阅读 · 200题题库</div></div>
+  <div class="header">
+    <div class="home-deco">🐵📿☁️</div>
+    <h1>《西游记》知识闯关</h1>
+    <div class="subtitle">初中语文名著阅读 · 200题题库</div>
+  </div>
   <div class="card">
     <div class="card-title">📖 学生答题</div>
     <div class="input-group"><label>你的姓名</label><input type="text" id="studentName" placeholder="请输入姓名" maxlength="20"></div>
-    <div class="input-group">
-      <label>答题模式</label>
-      <select id="quizMode">
-        <option value="mixed">混合模式（20题：简单8+中等8+困难4）</option>
-        <option value="easy">初级挑战（20题，基础识记）</option>
-        <option value="medium">中级挑战（20题，情节细节）</option>
-        <option value="hard">高级挑战（10题，主题分析）</option>
-        <option value="quick">速测模式（10题，混合难度）</option>
-      </select>
+    <div class="input-group"><label>选择闯关模式</label></div>
+    <div id="modeCards">
+      <div class="mode-card active" data-mode="mixed" onclick="selectMode(this)">
+        <div class="mode-icon">🌀</div>
+        <div class="mode-info">
+          <div class="mode-name">混合模式</div>
+          <div class="mode-desc">20题：简单8+中等8+困难4</div>
+        </div>
+      </div>
+      <div class="mode-card" data-mode="easy" onclick="selectMode(this)">
+        <div class="mode-icon">🐴</div>
+        <div class="mode-info">
+          <div class="mode-name">初级挑战</div>
+          <div class="mode-desc">20题，基础识记（白龙马难度）</div>
+        </div>
+      </div>
+      <div class="mode-card" data-mode="medium" onclick="selectMode(this)">
+        <div class="mode-icon">🐷</div>
+        <div class="mode-info">
+          <div class="mode-name">中级挑战</div>
+          <div class="mode-desc">20题，情节细节（天蓬难度）</div>
+        </div>
+      </div>
+      <div class="mode-card" data-mode="hard" onclick="selectMode(this)">
+        <div class="mode-icon">🐵</div>
+        <div class="mode-info">
+          <div class="mode-name">高级挑战</div>
+          <div class="mode-desc">10题，主题分析（大圣难度）</div>
+        </div>
+      </div>
+      <div class="mode-card" data-mode="quick" onclick="selectMode(this)">
+        <div class="mode-icon">⚡</div>
+        <div class="mode-info">
+          <div class="mode-name">速测模式</div>
+          <div class="mode-desc">10题，混合难度，快速通关</div>
+        </div>
+      </div>
     </div>
-    <button class="btn" onclick="startQuiz()">开始答题</button>
+    <input type="hidden" id="quizMode" value="mixed">
+    <button class="btn" onclick="startQuiz()" style="margin-top:14px;">开始答题</button>
   </div>
 
   <div class="card" style="padding-top:14px; display:none;">
@@ -162,6 +252,7 @@
     <button class="btn btn-outline" id="nextBtn" onclick="nextQuestion()" disabled>下一题</button>
     <button class="btn" id="submitBtn" onclick="submitExam()" style="display:none;">交卷</button>
   </div>
+  <div class="egg-tip" id="eggTip"></div>
 </div>
 
 <div id="resultPage" class="page">
@@ -180,8 +271,12 @@
     </div>
   </div>
   <div class="card" id="liveRankCard" style="display:none;">
-    <div class="card-title">🏆 实时排名</div>
-    <div id="liveRank" style="text-align:center; font-size:24px; font-weight:700; color:#d35400;">正在计算排名...</div>
+    <div class="trophy-card">
+      <div class="trophy-icon">🏆</div>
+      <div class="trophy-rank" id="liveRank">正在计算排名...</div>
+      <div class="trophy-detail" id="liveRankDetail"></div>
+      <div class="trophy-bar"><div class="trophy-bar-fill" id="trophyBar" style="width:0%"></div></div>
+    </div>
   </div>
   <div class="card" id="reviewCard" style="display:none;">
     <div class="card-title">📝 错题回顾</div>
@@ -193,9 +288,16 @@
       <button class="btn btn-small btn-secondary" onclick="toggleReview()">查看错题</button>
       <button class="btn btn-small btn-outline" onclick="shareResult()">截图分享</button>
     </div>
-    <div id="shareCard" style="display:none; margin-top:12px; padding:12px; background:#faf7f2; border-radius:8px; border:1px solid #e8e0d0; text-align:center;">
-      <div id="shareText" style="font-size:15px; color:#3e2723; line-height:1.8;"></div>
-      <div style="font-size:12px; color:#8d6e63; margin-top:8px;">↑ 长按上方文本可复制，或截图发朋友圈</div>
+    <div id="shareCard" style="display:none; margin-top:12px;">
+      <div class="share-poster" id="sharePoster">
+        <div class="poster-title">📚《西游记》知识闯关</div>
+        <div class="poster-name" id="posterName">姓名</div>
+        <div class="poster-score" id="posterScore">0</div>
+        <div class="poster-title-name" id="posterTitle">称号</div>
+        <div class="poster-stats" id="posterStats"></div>
+        <div class="poster-footer">扫码参与挑战，看看你能排第几 👇</div>
+      </div>
+      <div style="font-size:12px; color:#8d6e63; text-align:center; margin-top:8px;">↑ 长按上方卡片可保存截图</div>
     </div>
   </div>
   <div style="text-align:center; margin-top:16px;"><button class="btn" onclick="goHome()">再答一次</button></div>
@@ -229,6 +331,21 @@
       <table class="rank-table" id="bmobRankTable"><thead><tr><th>排名</th><th>姓名</th><th>分数</th><th>用时</th><th>日期</th></tr></thead><tbody id="bmobRankBody"></tbody></table>
     </div>
     <div class="hint">数据来自 Bmob 云端，按分数降序、用时升序排列。</div>
+  </div>
+  <div class="card" id="teacherChartCard" style="display:none;">
+    <div class="card-title">📊 班级数据分析</div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:14px; color:#5d4037; margin-bottom:8px;">分数分布</div>
+      <canvas id="scoreChart" width="560" height="200" style="max-width:100%;"></canvas>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:14px; color:#5d4037; margin-bottom:8px;">正确率</div>
+      <canvas id="accuracyChart" width="560" height="200" style="max-width:100%;"></canvas>
+    </div>
+    <div>
+      <div style="font-size:14px; color:#5d4037; margin-bottom:8px;">用时统计</div>
+      <canvas id="timeChart" width="560" height="200" style="max-width:100%;"></canvas>
+    </div>
   </div>
   <div style="text-align:center; margin-top:16px;"><button class="btn btn-outline" onclick="goHome()">返回首页</button></div>
 </div>
@@ -329,6 +446,20 @@ function drawQuestions(mode) {
   });
 }
 
+function selectMode(el) {
+  var cards = document.querySelectorAll('.mode-card');
+  for (var i = 0; i < cards.length; i++) { cards[i].classList.remove('active'); }
+  el.classList.add('active');
+  document.getElementById('quizMode').value = el.getAttribute('data-mode');
+}
+
+function selectMode(el) {
+  var cards = document.querySelectorAll('.mode-card');
+  for (var i = 0; i < cards.length; i++) { cards[i].classList.remove('active'); }
+  el.classList.add('active');
+  document.getElementById('quizMode').value = el.getAttribute('data-mode');
+}
+
 function startQuiz() {
   var name = document.getElementById('studentName').value.trim();
   if (!name) { showToast('请输入姓名'); return; }
@@ -381,6 +512,8 @@ function renderQuestion() {
   }
   document.getElementById('explanationBox').classList.remove('show');
   document.getElementById('explanationBox').textContent = '';
+  document.getElementById('timerBar').classList.remove('urgent');
+  document.getElementById('timerText').classList.remove('urgent');
   document.getElementById('nextBtn').disabled = true;
   var isLast = state.currentIdx === state.quiz.length - 1;
   document.getElementById('submitBtn').style.display = isLast ? 'block' : 'none';
@@ -400,15 +533,35 @@ function startTimer() {
   state.timerId = setInterval(function() {
     remain--;
     text.textContent = remain + ' 秒';
-    if (remain <= 0) { clearInterval(state.timerId); selectOption(-1); }
+    if (remain <= 5) {
+      bar.classList.add('urgent');
+      text.classList.add('urgent');
+    }
+    if (remain <= 0) { clearInterval(state.timerId); bar.classList.remove('urgent'); text.classList.remove('urgent'); selectOption(-1); }
   }, 1000);
 }
 function selectOption(idx) {
   if (state.timerId) clearInterval(state.timerId);
+  var bar = document.getElementById('timerBar');
+  var text = document.getElementById('timerText');
+  bar.classList.remove('urgent'); text.classList.remove('urgent');
   var q = state.quiz[state.currentIdx];
   var correct = idx === q.answer;
   var timeUsed = Math.round((Date.now() - state.questionStartTime) / 1000);
   state.answers.push({ qIdx: state.currentIdx, selected: idx, correct: correct, time: timeUsed });
+  
+  // 飘字动画 + 震动
+  if (correct) {
+    showFloatText('+5', '#4caf50');
+    if (navigator.vibrate) navigator.vibrate([50]);
+  } else if (idx !== -1) {
+    showFloatText('✗', '#f44336');
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+  }
+  
+  // 知识彩蛋（每5题）
+  if ((state.currentIdx + 1) % 5 === 0) showEggTip();
+  
   var opts = document.querySelectorAll('.option');
   for (var i = 0; i < opts.length; i++) {
     var el = opts[i];
@@ -442,14 +595,24 @@ function submitExam() {
   var wrong = state.answers.length - correct;
   var score = Math.round((correct / state.quiz.length) * 100);
   var accuracy = Math.round((correct / state.quiz.length) * 100);
-  var title = '白龙马';
-  if (score >= 95) title = '斗战胜佛 🏆';
-  else if (score >= 85) title = '齐天大圣 🥇';
-  else if (score >= 75) title = '天蓬元帅 🥈';
-  else if (score >= 60) title = '卷帘大将 🥉';
+  var title = '白龙马 🐴';
+  var titleDesc = '还需努力，继续取经！';
+  if (score >= 100) { title = '如来佛祖 🌟'; titleDesc = '全知全能，佛法无边！'; }
+  else if (score >= 95) { title = '斗战胜佛 🏆'; titleDesc = '功行圆满，超凡入圣！'; }
+  else if (score >= 90) { title = '齐天大圣 🥇'; titleDesc = '神通广大，无人能敌！'; }
+  else if (score >= 85) { title = '美猴王 🥈'; titleDesc = '身手不凡，英勇善战！'; }
+  else if (score >= 80) { title = '金身罗汉 🥉'; titleDesc = '武艺高强，忠心护主！'; }
+  else if (score >= 75) { title = '天蓬元帅 🐷'; titleDesc = '力大无穷，憨态可掬！'; }
+  else if (score >= 70) { title = '卷帘大将 🌊'; titleDesc = '勤勤恳恳，任劳任怨！'; }
+  else if (score >= 65) { title = '东海龙王 🐉'; titleDesc = '掌管一方，法力初成！'; }
+  else if (score >= 60) { title = '托塔天王 🏰'; titleDesc = '初具威名，尚可一战！'; }
+  else if (score >= 50) { title = '白骨精 👻'; titleDesc = '手段有限，还需修炼！'; }
+  else if (score >= 40) { title = '小钻风 🌪️'; titleDesc = '巡山放哨，勉强度日！'; }
+  else if (score >= 30) { title = '虾兵蟹将 🦐'; titleDesc = '法力微弱，尚需磨炼！'; }
+  else { title = '凡人村民 🧑‍🌾'; titleDesc = '肉眼凡胎，读书太少！'; }
   document.getElementById('scoreNum').textContent = score;
   document.getElementById('fullScore').textContent = 100;
-  document.getElementById('titleName').textContent = title;
+  document.getElementById('titleName').innerHTML = title + '<br><span style="font-size:14px;color:#8d6e63;font-weight:normal;">' + titleDesc + '</span>';
   document.getElementById('correctCount').textContent = correct;
   document.getElementById('wrongCount').textContent = wrong;
   document.getElementById('timeUsed').textContent = totalTime;
@@ -589,9 +752,14 @@ function getBmobRank(myName, myScore, myTime) {
     }
     var total = list.length;
     var topPct = total > 0 ? Math.round((rank / total) * 100) : 0;
+    var beatPct = total > 0 ? Math.round(((total - rank) / total) * 100) : 0;
     var liveRankEl = document.getElementById('liveRank');
+    var liveRankDetail = document.getElementById('liveRankDetail');
     var liveRankCard = document.getElementById('liveRankCard');
-    if (liveRankEl) liveRankEl.innerHTML = '您排第 <span style="font-size:32px;">' + rank + '</span> 名<br><span style="font-size:14px;color:#8d6e63;">全班共 ' + total + ' 人，前 ' + topPct + '%</span>';
+    var trophyBar = document.getElementById('trophyBar');
+    if (liveRankEl) liveRankEl.innerHTML = '第 <span style="font-size:40px;">' + rank + '</span> 名';
+    if (liveRankDetail) liveRankDetail.innerHTML = '全班共 ' + total + ' 人 | 超越 ' + beatPct + '% 同学';
+    if (trophyBar) trophyBar.style.width = (100 - topPct) + '%';
     if (liveRankCard) liveRankCard.style.display = 'block';
   }
   
@@ -621,11 +789,14 @@ function shareResult() {
   var wrong = document.getElementById('wrongCount').textContent;
   var time = document.getElementById('timeUsed').textContent;
   var title = document.getElementById('titleName').textContent;
-  var text = '📚《西游记》知识闯关\n👤 ' + state.name + '\n💯 得分：' + score + ' 分\n🏅 称号：' + title + '\n✅ 正确 ' + correct + ' 题 | ❌ 错误 ' + wrong + ' 题\n⏱ 用时 ' + time + ' 秒';
+  var titleClean = title.split('\n')[0];
+  document.getElementById('posterName').textContent = state.name + ' 的西游闯关成绩单';
+  document.getElementById('posterScore').textContent = score + '分';
+  document.getElementById('posterTitle').textContent = titleClean;
+  document.getElementById('posterStats').innerHTML = '✅ 正确 ' + correct + ' 题 | ❌ 错误 ' + wrong + ' 题<br>⏱ 用时 ' + time + ' 秒 | 📊 正确率 ' + document.getElementById('accuracy').textContent;
   var shareCard = document.getElementById('shareCard');
-  var shareText = document.getElementById('shareText');
-  shareText.textContent = text;
   shareCard.style.display = 'block';
+  var text = '📚《西游记》知识闯关\n👤 ' + state.name + '\n💯 得分：' + score + ' 分\n🏅 称号：' + titleClean + '\n✅ 正确 ' + correct + ' 题 | ❌ 错误 ' + wrong + ' 题\n⏱ 用时 ' + time + ' 秒';
   if (navigator.share) {
     navigator.share({ title: '西游记知识闯关成绩', text: text }).then(function() { showToast('分享成功'); }).catch(function() { });
   }
@@ -745,10 +916,153 @@ function loadBmobRank() {
     }
     document.getElementById('bmobRankCard').style.display = 'block';
     showToast('已拉取 ' + list.length + ' 人成绩');
+    drawTeacherCharts(list);
   }
   doRequest();
 }
+function toggleMusic() {
+  var audio = document.getElementById('bgMusic');
+  var btn = document.getElementById('musicBtn');
+  if (audio.paused) {
+    audio.play().then(function() { btn.classList.add('playing'); btn.textContent = '🎶'; showToast('背景音乐已开启'); }).catch(function() { showToast('音乐加载失败'); });
+  } else {
+    audio.pause(); btn.classList.remove('playing'); btn.textContent = '🎵'; showToast('背景音乐已关闭');
+  }
+}
+
+function showFloatText(text, color) {
+  var el = document.createElement('div');
+  el.className = 'float-score';
+  el.textContent = text;
+  el.style.color = color;
+  el.style.left = (window.innerWidth / 2 - 20) + 'px';
+  el.style.top = (window.innerHeight / 2 - 20) + 'px';
+  document.body.appendChild(el);
+  setTimeout(function() { document.body.removeChild(el); }, 1000);
+}
+
+var EGG_TIPS = [
+  '💡 冷知识：孙悟空的毫毛可以变成 anything，但拔毛会疼！',
+  '💡 冷知识：猪八戒的九齿钉耙其实是太上老君锻造的！',
+  '💡 冷知识：唐僧取经其实用了17年，不是81天！',
+  '💡 冷知识：沙僧的流沙河有八万四千里的鹅毛沉底！',
+  '💡 冷知识：白龙马其实是西海龙王三太子，因纵火烧明珠被罚！',
+  '💡 冷知识：观音菩萨的原型是道教中的慈航道人！',
+  '💡 冷知识：西游记全书约87万字，比红楼梦还长！',
+  '💡 冷知识：孙悟空被封的弼马温其实是避马瘟的谐音！'
+];
+
+function showEggTip() {
+  var tip = document.getElementById('eggTip');
+  if (!tip) return;
+  var idx = Math.floor(Math.random() * EGG_TIPS.length);
+  tip.textContent = EGG_TIPS[idx];
+  tip.classList.add('show');
+  setTimeout(function() { tip.classList.remove('show'); }, 4000);
+}
+
+function drawTeacherCharts(list) {
+  var card = document.getElementById('teacherChartCard');
+  if (!card || list.length === 0) return;
+  card.style.display = 'block';
+  
+  // 分数分布柱状图
+  var scoreCtx = document.getElementById('scoreChart').getContext('2d');
+  var scoreBins = { '60以下':0, '60-69':0, '70-79':0, '80-89':0, '90-99':0, '100':0 };
+  for (var i = 0; i < list.length; i++) {
+    var s = list[i].score || 0;
+    if (s < 60) scoreBins['60以下']++;
+    else if (s < 70) scoreBins['60-69']++;
+    else if (s < 80) scoreBins['70-79']++;
+    else if (s < 90) scoreBins['80-89']++;
+    else if (s < 100) scoreBins['90-99']++;
+    else scoreBins['100']++;
+  }
+  drawBarChart(scoreCtx, Object.keys(scoreBins), Object.values(scoreBins), '#c43b3b', '人数');
+  
+  // 正确率饼图
+  var accCtx = document.getElementById('accuracyChart').getContext('2d');
+  var accData = [0, 0, 0];
+  for (var i = 0; i < list.length; i++) {
+    var s = list[i].score || 0;
+    if (s >= 80) accData[0]++;
+    else if (s >= 60) accData[1]++;
+    else accData[2]++;
+  }
+  drawPieChart(accCtx, ['优秀(≥80)', '及格(60-79)', '不及格(<60)'], accData, ['#4caf50', '#d4a843', '#f44336']);
+  
+  // 用时统计柱状图
+  var timeCtx = document.getElementById('timeChart').getContext('2d');
+  var timeBins = { '<60秒':0, '60-120秒':0, '120-180秒':0, '>180秒':0 };
+  for (var i = 0; i < list.length; i++) {
+    var t = list[i].time || 0;
+    if (t < 60) timeBins['<60秒']++;
+    else if (t < 120) timeBins['60-120秒']++;
+    else if (t < 180) timeBins['120-180秒']++;
+    else timeBins['>180秒']++;
+  }
+  drawBarChart(timeCtx, Object.keys(timeBins), Object.values(timeBins), '#d4a843', '人数');
+}
+
+function drawBarChart(ctx, labels, data, color, yLabel) {
+  var w = ctx.canvas.width, h = ctx.canvas.height;
+  var pad = 40, max = Math.max.apply(Math, data);
+  if (max === 0) max = 1;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#3e2723'; ctx.font = '12px serif'; ctx.textAlign = 'center';
+  var bw = (w - pad * 2) / labels.length - 10;
+  for (var i = 0; i < labels.length; i++) {
+    var bh = (data[i] / max) * (h - pad * 2);
+    var x = pad + i * (bw + 10) + 5;
+    var y = h - pad - bh;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, bw, bh);
+    ctx.fillStyle = '#3e2723';
+    ctx.fillText(data[i], x + bw / 2, y - 5);
+    ctx.fillText(labels[i], x + bw / 2, h - pad + 15);
+  }
+}
+
+function drawPieChart(ctx, labels, data, colors) {
+  var w = ctx.canvas.width, h = ctx.canvas.height;
+  var cx = w / 2 - 60, cy = h / 2, r = Math.min(w, h) / 2 - 30;
+  var total = 0;
+  for (var i = 0; i < data.length; i++) total += data[i];
+  if (total === 0) total = 1;
+  ctx.clearRect(0, 0, w, h);
+  var start = -Math.PI / 2;
+  for (var i = 0; i < data.length; i++) {
+    var angle = (data[i] / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, start + angle);
+    ctx.closePath();
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+    start += angle;
+  }
+  ctx.fillStyle = '#3e2723'; ctx.font = '12px serif'; ctx.textAlign = 'left';
+  for (var i = 0; i < labels.length; i++) {
+    ctx.fillStyle = colors[i];
+    ctx.fillRect(cx + r + 20, 30 + i * 22, 12, 12);
+    ctx.fillStyle = '#3e2723';
+    ctx.fillText(labels[i] + ' (' + data[i] + '人)', cx + r + 38, 40 + i * 22);
+  }
+}
+
+setTimeout(function() {
+  var loading = document.getElementById('loadingOverlay');
+  if (loading) loading.classList.add('done');
+}, 1500);
+
 loadCloudConfig();
 </script>
+
+<!-- 背景音乐 -->
+<audio id="bgMusic" loop preload="none">
+  <source src="https://music.163.com/song/media/outer/url?id=478507889.mp3" type="audio/mpeg">
+</audio>
+<div class="music-btn" id="musicBtn" onclick="toggleMusic()">🎵</div>
+
 </body>
 </html>
