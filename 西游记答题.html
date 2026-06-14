@@ -5,149 +5,1028 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>《西游记》知识闯关</title>
 <style>
+  /* ===== 设计令牌：颜色系统 ===== */
+  :root {
+    --bg-base: #f7f3e8;
+    --bg-card: #ffffff;
+    --bg-card-hover: #faf7f2;
+    --bg-warm: #fff8e1;
+    --bg-info: #e3f2fd;
+    --bg-success: #e8f5e9;
+    --bg-error: #ffebee;
+    --text-primary: #3d2b1f;
+    --text-secondary: #7a5e48;
+    --text-tertiary: #a88b73;
+    --text-muted: #a89078;
+    --accent-red: #b71c1c;
+    --accent-red-hover: #8a1515;
+    --accent-red-soft: #c43b3b;
+    --accent-gold: #d4a843;
+    --accent-gold-hover: #b8922e;
+    --accent-green: #4caf50;
+    --accent-green-dark: #2e7d32;
+    --accent-orange: #ff9800;
+    --accent-blue: #1976d2;
+    --border-subtle: #ede5d8;
+    --border-default: #e8e0d0;
+    --border-focus: #c43b3b;
+    --shadow-sm: 0 1px 3px rgba(61, 43, 31, 0.06);
+    --shadow-md: 0 4px 12px rgba(61, 43, 31, 0.08);
+    --shadow-lg: 0 8px 24px rgba(61, 43, 31, 0.12);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* 减少动效偏好 - accessibility override, !important required for override scope */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { height:100%; font-family: "STKaiti","KaiTi","楷体","SimSun",serif; background:#f7f3e8; color:#3e2723; overflow-x:hidden; }
-  body { -webkit-tap-highlight-color: transparent; }
-  .page { display:none; min-height:100vh; padding:20px 16px; max-width:600px; margin:0 auto; }
-  .page.active { display:block; animation:fadeIn 0.4s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-  .header { text-align:center; margin-bottom:24px; }
-  .header h1 { font-size:28px; color:#b71c1c; text-shadow:1px 1px 0 #d4a843; margin-bottom:6px; }
-  .header .subtitle { font-size:14px; color:#8d6e63; }
-  .card { background:#fff; border-radius:12px; padding:20px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); border:1px solid #e8e0d0; }
-  .card-title { font-size:18px; color:#5d4037; margin-bottom:12px; border-left:4px solid #c43b3b; padding-left:10px; font-weight:bold; }
-  input, select, button, textarea { font-family:inherit; font-size:16px; }
-  .input-group { margin-bottom:14px; }
-  .input-group label { display:block; font-size:15px; color:#5d4037; margin-bottom:6px; font-weight:bold; }
-  .input-group input, .input-group select, .input-group textarea { width:100%; padding:12px 14px; border:1px solid #d7ccc8; border-radius:8px; background:#faf7f2; color:#3e2723; outline:none; transition:border 0.2s; }
-  .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color:#c43b3b; }
-  .hint { font-size:13px; color:#8d6e63; margin-top:4px; line-height:1.5; }
-  .btn { display:block; width:100%; padding:14px; border:none; border-radius:8px; background:linear-gradient(135deg, #c43b3b 0%, #a52a2a 100%); color:#fff; font-size:17px; cursor:pointer; text-align:center; transition:transform 0.1s, box-shadow 0.2s; margin-bottom:10px; }
-  .btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(196,59,59,0.3); }
-  .btn:active { transform:translateY(0); }
-  .btn-secondary { background:linear-gradient(135deg, #d4a843 0%, #b8942e 100%); }
-  .btn-secondary:hover { box-shadow:0 4px 12px rgba(212,168,67,0.3); }
-  .btn-outline { background:transparent; border:2px solid #c43b3b; color:#c43b3b; }
-  .btn-outline:hover { background:rgba(196,59,59,0.05); }
-  .btn-small { display:inline-block; width:auto; padding:8px 16px; font-size:14px; margin-right:8px; margin-bottom:0; }
-  .quiz-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-  .quiz-header .info { font-size:14px; color:#8d6e63; }
-  .timer-wrap { width:100%; height:6px; background:#e8e0d0; border-radius:3px; margin-bottom:20px; overflow:hidden; }
-  .timer-bar { height:100%; width:100%; background:linear-gradient(90deg, #d4a843, #c43b3b); border-radius:3px; transition:width 1s linear; }
-  .question-text { font-size:18px; line-height:1.7; margin-bottom:20px; color:#3e2723; font-weight:bold; }
-  .options { display:flex; flex-direction:column; gap:10px; }
-  .option { padding:14px 16px; border:2px solid #e8e0d0; border-radius:8px; cursor:pointer; background:#fff; transition:all 0.2s; font-size:16px; position:relative; }
-  .option:hover { border-color:#c43b3b; background:#fff8f8; }
-  .option.correct { border-color:#4caf50; background:#e8f5e9; color:#2e7d32; }
-  .option.wrong { border-color:#f44336; background:#ffebee; color:#c62828; }
-  .option.disabled { pointer-events:none; opacity:0.7; }
-  .option .badge { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:14px; font-weight:bold; }
-  .option.correct .badge { color:#4caf50; }
-  .option.wrong .badge { color:#f44336; }
-  .explanation { margin-top:14px; padding:12px; background:#fff8e1; border-left:4px solid #d4a843; border-radius:0 8px 8px 0; font-size:15px; color:#5d4037; display:none; }
-  .explanation.show { display:block; animation:fadeIn 0.3s ease; }
-  .ctrl-btns { display:flex; gap:10px; margin-top:20px; }
+
+  html, body {
+    height:100%;
+    font-family: "KaiTi", "楷体", "STKaiti", "Noto Serif SC", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    overflow-x:hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    -webkit-tap-highlight-color: transparent;
+    background-image:
+      radial-gradient(ellipse at 20% 80%, rgba(212, 168, 67, 0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(183, 28, 28, 0.03) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  .page {
+    display:none;
+    min-height:100vh;
+    padding: var(--spacing-lg) var(--spacing-md);
+    max-width: 640px;
+    margin:0 auto;
+  }
+  .page.active {
+    display:block;
+    animation: fadeInUp 0.5s var(--transition-slow);
+  }
+  @keyframes fadeInUp {
+    from { opacity:0; transform: translateY(12px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+
+  /* ===== 头部样式 ===== */
+  .header { text-align:center; margin-bottom: var(--spacing-xl); padding-top: var(--spacing-md); position: relative; }
+  .header h1 {
+    font-size: 36px;
+    color: var(--accent-red);
+    text-shadow: 1px 1px 0 rgba(212, 168, 67, 0.15), 0 2px 8px rgba(183, 28, 28, 0.1);
+    margin-bottom: var(--spacing-sm);
+    letter-spacing: 6px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .header .subtitle {
+    font-size: 15px;
+    color: var(--text-secondary);
+    letter-spacing: 2px;
+    font-weight: 500;
+  }
+  .header::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+    margin: var(--spacing-md) auto 0;
+    border-radius: 2px;
+  }
+
+  /* ===== 卡片系统：卷轴风格 ===== */
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    box-shadow: var(--shadow-md);
+    border: 2px solid var(--border-subtle);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+    position: relative;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  }
+  .card::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  }
+  .card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(212, 168, 67, 0.3);
+  }
+  .card-title {
+    font-size: 18px;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    border-left: 4px solid var(--accent-red-soft);
+    padding-left: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: 1px;
+  }
+
+  /* ===== 表单控件 ===== */
+  input, select, button, textarea {
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--text-primary);
+  }
+  .input-group { margin-bottom: var(--spacing-md); }
+  .input-group label {
+    display:block;
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+  }
+  .input-group input,
+  .input-group select,
+  .input-group textarea {
+    width:100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    outline:none;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+  .input-group input:focus,
+  .input-group select:focus,
+  .input-group textarea:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(196, 59, 59, 0.1);
+  }
+  .input-group input::placeholder {
+    color: var(--text-muted);
+  }
+  .hint {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: var(--spacing-xs);
+    line-height: 1.6;
+  }
+
+  /* ===== 按钮系统 ===== */
+  .btn {
+    display:block;
+    width:100%;
+    padding: 16px 20px;
+    border:none;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-red-soft) 0%, var(--accent-red) 100%);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    cursor:pointer;
+    text-align:center;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+    margin-bottom: var(--spacing-sm);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.5px;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(255,255,255,0.12), transparent);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg), 0 4px 16px rgba(183, 28, 28, 0.25);
+    filter: brightness(1.05);
+  }
+  .btn:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: var(--shadow-sm);
+    filter: brightness(0.98);
+    transition-duration: 50ms;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    filter: none;
+  }
+  .btn-secondary {
+    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-hover) 100%);
+  }
+  .btn-secondary:hover {
+    box-shadow: var(--shadow-lg), 0 4px 16px rgba(212, 168, 67, 0.2);
+  }
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--accent-red-soft);
+    color: var(--accent-red-soft);
+  }
+  .btn-outline:hover {
+    background: rgba(196, 59, 59, 0.04);
+    box-shadow: none;
+  }
+  .btn-small {
+    display:inline-block;
+    width:auto;
+    padding: 10px 18px;
+    font-size: 14px;
+    margin-right: var(--spacing-sm);
+    margin-bottom: 0;
+  }
+
+  /* ===== 答题头部 ===== */
+  .quiz-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: var(--spacing-md);
+    padding: 0 var(--spacing-sm);
+  }
+  .quiz-header .info {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .quiz-header .info span {
+    color: var(--accent-red);
+    font-weight: 700;
+  }
+
+  /* ===== 计时器 ===== */
+  .timer-wrap {
+    width:100%;
+    height: 8px;
+    background: var(--border-subtle);
+    border-radius: 4px;
+    margin-bottom: var(--spacing-lg);
+    overflow:hidden;
+    position: relative;
+  }
+  .timer-bar {
+    height:100%;
+    width:100%;
+    background: linear-gradient(90deg, var(--accent-gold), var(--accent-red-soft));
+    border-radius: 4px;
+    transition: width 1s linear;
+  }
+  .timer-bar.urgent {
+    background: linear-gradient(90deg, #ff5252, #d32f2f);
+  }
+  .timer-num.urgent {
+    color: var(--accent-red);
+    font-weight: 700;
+  }
+
+  /* ===== 题目与选项：匾额风格 ===== */
+  .question-text {
+    font-size: 18px;
+    line-height: 1.7;
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .options {
+    display:flex;
+    flex-direction:column;
+    gap: var(--spacing-sm);
+  }
+  .option {
+    padding: 16px 18px;
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    cursor:pointer;
+    background: var(--bg-card);
+    transition: all var(--transition-fast);
+    font-size: 16px;
+    position:relative;
+    line-height: 1.5;
+    letter-spacing: 0.3px;
+  }
+  .option:hover {
+    border-color: var(--accent-gold);
+    background: rgba(212, 168, 67, 0.04);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(212, 168, 67, 0.1);
+  }
+  .option:active {
+    transform: translateX(4px) scale(0.99);
+    background: rgba(212, 168, 67, 0.08);
+    transition-duration: 50ms;
+  }
+  .option.correct {
+    border-color: var(--accent-green);
+    background: var(--bg-success);
+    color: var(--accent-green-dark);
+    box-shadow: 0 0 0 1px var(--accent-green);
+  }
+  .option.wrong {
+    border-color: #f44336;
+    background: var(--bg-error);
+    color: #c62828;
+    box-shadow: 0 0 0 1px #f44336;
+  }
+  .option.disabled {
+    pointer-events:none;
+    opacity: 0.75;
+  }
+  .option .badge {
+    position:absolute;
+    right: 16px;
+    top:50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .option.correct .badge { color: var(--accent-green); }
+  .option.wrong .badge { color: #f44336; }
+
+  /* ===== 解析 ===== */
+  .explanation {
+    margin-top: var(--spacing-md);
+    padding: 14px 16px;
+    background: var(--bg-warm);
+    border-left: 4px solid var(--accent-gold);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 15px;
+    color: var(--text-secondary);
+    display:none;
+    line-height: 1.6;
+  }
+  .explanation.show {
+    display:block;
+    animation: fadeInUp 0.3s var(--transition-base);
+  }
+
+  /* ===== 控制按钮 ===== */
+  .ctrl-btns {
+    display:flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+  }
   .ctrl-btns .btn { flex:1; margin-bottom:0; }
-  .result-score { text-align:center; margin-bottom:20px; }
-  .result-score .score-num { font-size:56px; color:#c43b3b; font-weight:bold; line-height:1; }
-  .result-score .score-label { font-size:16px; color:#8d6e63; margin-top:6px; }
-  .result-score .title-name { font-size:22px; color:#d4a843; margin-top:12px; font-weight:bold; }
-  .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
-  .stat-item { text-align:center; padding:12px; background:#faf7f2; border-radius:8px; }
-  .stat-item .val { font-size:20px; font-weight:bold; color:#c43b3b; }
-  .stat-item .lab { font-size:13px; color:#8d6e63; margin-top:4px; }
-  .review-list { max-height:300px; overflow-y:auto; margin-bottom:16px; }
-  .review-item { padding:10px; border-bottom:1px solid #e8e0d0; font-size:14px; }
-  .review-item .q { font-weight:bold; margin-bottom:4px; }
-  .review-item .a { color:#4caf50; }
-  .review-item .w { color:#f44336; }
-  .action-btns { display:flex; flex-wrap:wrap; gap:10px; }
-  .action-btns .btn { flex:1; min-width:120px; }
-  .copy-box { margin-top:12px; padding:12px; background:#faf7f2; border:1px dashed #d7ccc8; border-radius:8px; font-size:13px; word-break:break-all; color:#6d4c41; }
-  .status-tag { display:inline-block; padding:4px 10px; border-radius:12px; font-size:13px; margin-left:8px; }
-  .status-tag.ok { background:#e8f5e9; color:#2e7d32; }
-  .status-tag.fail { background:#ffebee; color:#c62828; }
-  .status-tag.wait { background:#fff8e1; color:#f57f17; }
-  .rank-table { width:100%; border-collapse:collapse; font-size:14px; }
-  .rank-table th, .rank-table td { padding:10px 8px; border-bottom:1px solid #e8e0d0; text-align:center; }
-  .rank-table th { background:#faf7f2; color:#5d4037; font-weight:bold; }
-  .rank-table tr:nth-child(1) td { background:#fff8e1; font-weight:bold; color:#b71c1c; }
-  .rank-table tr:nth-child(2) td { background:#f5f5f5; font-weight:bold; color:#5d4037; }
-  .rank-table tr:nth-child(3) td { background:#fff3e0; font-weight:bold; color:#5d4037; }
-  .rank-num { display:inline-block; width:24px; height:24px; line-height:24px; border-radius:50%; background:#e8e0d0; color:#5d4037; font-size:12px; }
-  .rank-table tr:nth-child(1) .rank-num { background:#d4a843; color:#fff; }
-  .rank-table tr:nth-child(2) .rank-num { background:#9e9e9e; color:#fff; }
-  .rank-table tr:nth-child(3) .rank-num { background:#cd7f32; color:#fff; }
-  .hidden { display:none !important; }
-  .collapse { max-height:0; overflow:hidden; transition:max-height 0.3s ease; }
-  .collapse.open { max-height:800px; }
-  .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-60px); background:#3e2723; color:#fff; padding:10px 20px; border-radius:20px; font-size:14px; z-index:1000; transition:transform 0.3s ease; }
-  .toast.show { transform:translateX(-50%) translateY(0); }
-  .warn-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:2000; display:none; justify-content:center; align-items:center; flex-direction:column; color:#fff; text-align:center; padding:20px; }
-  .warn-overlay.active { display:flex; }
-  .warn-overlay h2 { color:#ff5252; font-size:24px; margin-bottom:12px; }
-  .warn-overlay p { font-size:16px; line-height:1.6; }
-  .tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px; margin-left:6px; }
-  .tag.rec { background:#e8f5e9; color:#2e7d32; }
-  .tag.dom { background:#e3f2fd; color:#1565c0; }
-  .tag.int { background:#fce4ec; color:#c62828; }
-  
-  /* ===== 1. 加载动画 ===== */
-  .loading-overlay { position:fixed; inset:0; background:#f7f3e8; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; transition:opacity 0.5s ease; }
+
+  /* ===== 结果页：金榜风格 ===== */
+  .result-score {
+    text-align:center;
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-lg) var(--spacing-md);
+    background: linear-gradient(160deg, var(--bg-warm) 0%, #ffffff 40%, #faf7f2 60%, var(--bg-warm) 100%);
+    border: 2px solid var(--accent-gold);
+    border-radius: var(--radius-sm);
+    position: relative;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 24px rgba(61, 43, 31, 0.08);
+  }
+  .result-score::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 30px;
+    right: 30px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  }
+  .result-score::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 30px;
+    right: 30px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  }
+  .result-score .score-num {
+    font-size: 64px;
+    color: var(--accent-red);
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 2px 2px 0 rgba(212, 168, 67, 0.15);
+    letter-spacing: 2px;
+  }
+  .result-score .score-label {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-sm);
+    letter-spacing: 1px;
+  }
+  .result-score .title-name {
+    font-size: 24px;
+    color: var(--accent-gold);
+    margin-top: var(--spacing-md);
+    font-weight: 700;
+    letter-spacing: 3px;
+  }
+  .stat-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+  .stat-item {
+    text-align:center;
+    padding: var(--spacing-md);
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    border: 1px solid var(--border-subtle);
+    position: relative;
+  }
+  .stat-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 2px;
+    background: var(--accent-gold);
+    border-radius: 1px;
+  }
+  .stat-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(212, 168, 67, 0.3);
+  }
+  .stat-item .val {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent-red);
+    letter-spacing: 1px;
+  }
+  .stat-item .lab {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  .review-list {
+    max-height: 320px;
+    overflow-y:auto;
+    margin-bottom: var(--spacing-md);
+  }
+  .review-item {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .review-item .q { font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
+  .review-item .a { color: var(--accent-green-dark); font-weight: 600; }
+  .review-item .w { color: #c62828; font-weight: 600; }
+  .action-btns {
+    display:flex;
+    flex-wrap:wrap;
+    gap: var(--spacing-sm);
+  }
+  .action-btns .btn { flex:1; min-width: 120px; }
+  .copy-box {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--bg-card-hover);
+    border: 1px dashed var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    word-break:break-all;
+    color: var(--text-secondary);
+  }
+
+  /* ===== 状态标签 ===== */
+  .status-tag {
+    display:inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: var(--spacing-sm);
+  }
+  .status-tag.ok { background: var(--bg-success); color: var(--accent-green-dark); }
+  .status-tag.fail { background: var(--bg-error); color: #c62828; }
+  .status-tag.wait { background: var(--bg-warm); color: #f57f17; }
+
+  /* ===== 排名表格 ===== */
+  .rank-table {
+    width:100%;
+    border-collapse:collapse;
+    font-size: 14px;
+  }
+  .rank-table th, .rank-table td {
+    padding: 12px 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    text-align:center;
+  }
+  .rank-table th {
+    background: var(--bg-card-hover);
+    color: var(--text-secondary);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .rank-table tr:nth-child(1) td {
+    background: linear-gradient(135deg, #fff8e1, #fff3e0);
+    font-weight: 700;
+    color: var(--accent-red);
+  }
+  .rank-table tr:nth-child(2) td {
+    background: linear-gradient(135deg, #f5f5f5, #fafafa);
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .rank-table tr:nth-child(3) td {
+    background: linear-gradient(135deg, #fff3e0, #fff8e1);
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .rank-num {
+    display:inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .rank-table tr:nth-child(1) .rank-num { background: var(--accent-gold); color: #fff; box-shadow: 0 2px 4px rgba(212, 168, 67, 0.3); }
+  .rank-table tr:nth-child(2) .rank-num { background: #9e9e9e; color: #fff; box-shadow: 0 2px 4px rgba(158, 158, 158, 0.3); }
+  .rank-table tr:nth-child(3) .rank-num { background: #cd7f32; color: #fff; box-shadow: 0 2px 4px rgba(205, 127, 50, 0.3); }
+
+  /* ===== 祥云装饰 ===== */
+  .cloud-deco {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.04;
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+  .cloud-deco-1 {
+    width: 120px;
+    height: 60px;
+    top: 10%;
+    right: -20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'%3E%3Cpath d='M10 40 Q20 20 40 30 Q50 10 70 25 Q90 15 110 35 Q100 50 80 45 Q60 55 40 45 Q20 50 10 40' fill='%23d4a843'/%3E%3C/svg%3E");
+    animation: cloudFloat 8s ease-in-out infinite;
+  }
+  .cloud-deco-2 {
+    width: 100px;
+    height: 50px;
+    bottom: 15%;
+    left: -10px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 50'%3E%3Cpath d='M5 35 Q15 15 30 25 Q40 10 55 20 Q70 10 85 25 Q95 20 95 30 Q85 40 70 35 Q50 45 30 38 Q15 42 5 35' fill='%23b71c1c'/%3E%3C/svg%3E");
+    animation: cloudFloat 10s ease-in-out infinite reverse;
+  }
+  @keyframes cloudFloat {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    50% { transform: translateX(-10px) translateY(-5px); }
+  }
+
+  /* ===== 加载动画：金箍棒风格 ===== */
+  .loading-overlay {
+    position:fixed;
+    inset:0;
+    background: var(--bg-base);
+    z-index:9999;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
   .loading-overlay.done { opacity:0; pointer-events:none; }
-  .loading-cloud { width:80px; height:80px; border:4px solid #e8e0d0; border-top-color:#c43b3b; border-radius:50%; animation:spin 1s linear infinite; }
-  @keyframes spin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
-  .loading-text { margin-top:20px; font-size:18px; color:#5d4037; }
-  .loading-sub { margin-top:8px; font-size:14px; color:#8d6e63; }
-  
-  /* ===== 2. 倒计时紧迫感 ===== */
-  .timer-bar.urgent { background:linear-gradient(90deg, #ff5252, #d32f2f) !important; animation:pulse 0.8s ease infinite; }
-  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
-  .timer-num.urgent { color:#c62828; font-weight:bold; animation:pulse 0.8s ease infinite; }
-  
-  /* ===== 4. 分享海报 ===== */
-  .share-poster { background:linear-gradient(135deg, #fff8e1 0%, #fff 100%); border:2px solid #d4a843; border-radius:12px; padding:20px; text-align:center; position:relative; overflow:hidden; }
-  .share-poster::before { content:""; position:absolute; top:-20px; right:-20px; width:80px; height:80px; background:rgba(212,168,67,0.15); border-radius:50%; }
-  .share-poster .poster-title { font-size:22px; color:#b71c1c; font-weight:bold; margin-bottom:8px; }
-  .share-poster .poster-name { font-size:16px; color:#5d4037; margin-bottom:12px; }
-  .share-poster .poster-score { font-size:48px; color:#c43b3b; font-weight:bold; line-height:1; }
-  .share-poster .poster-title-name { font-size:20px; color:#d4a843; margin:10px 0; }
-  .share-poster .poster-stats { font-size:14px; color:#8d6e63; margin-top:12px; line-height:1.8; }
-  .share-poster .poster-footer { font-size:13px; color:#8d6e63; margin-top:16px; padding-top:12px; border-top:1px dashed #d4a843; }
-  
-  /* ===== 5. 首页视觉升级 ===== */
-  .home-deco { text-align:center; margin-bottom:16px; font-size:40px; animation:float 3s ease-in-out infinite; }
-  @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
-  .mode-card { display:flex; align-items:center; gap:12px; padding:14px; border:2px solid #e8e0d0; border-radius:10px; cursor:pointer; transition:all 0.2s; background:#fff; margin-bottom:10px; }
-  .mode-card:hover, .mode-card.active { border-color:#c43b3b; background:#fff8f8; }
-  .mode-card .mode-icon { font-size:28px; }
+  .loading-staff {
+    width: 60px;
+    height: 60px;
+    border: 4px solid var(--border-subtle);
+    border-top-color: var(--accent-gold);
+    border-bottom-color: var(--accent-red-soft);
+    border-radius: 50%;
+    animation: spin 1.2s linear infinite;
+    position: relative;
+  }
+  .loading-staff::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border: 2px solid transparent;
+    border-top-color: rgba(212, 168, 67, 0.3);
+    border-radius: 50%;
+    animation: spin 2s linear infinite reverse;
+  }
+  @keyframes spin {
+    from { transform: rotate(0); }
+    to { transform: rotate(360deg); }
+  }
+  .loading-text {
+    margin-top: var(--spacing-lg);
+    font-size: 20px;
+    color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: 4px;
+  }
+  .loading-sub {
+    margin-top: var(--spacing-sm);
+    font-size: 14px;
+    color: var(--text-tertiary);
+  }
+
+  /* ===== 首页装饰 ===== */
+  .home-deco {
+    text-align:center;
+    margin-bottom: var(--spacing-lg);
+    font-size: 44px;
+    animation: gentleFloat 3s ease-in-out infinite;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.06));
+  }
+  @keyframes gentleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .mode-card {
+    display:flex;
+    align-items:center;
+    gap: var(--spacing-md);
+    padding: 16px;
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    cursor:pointer;
+    transition: all var(--transition-fast);
+    background: var(--bg-card);
+    margin-bottom: var(--spacing-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .mode-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: transparent;
+    transition: background var(--transition-fast);
+  }
+  .mode-card:hover, .mode-card.active {
+    border-color: var(--accent-gold);
+    background: rgba(212, 168, 67, 0.04);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-sm);
+  }
+  .mode-card.active {
+    background: rgba(212, 168, 67, 0.08);
+    box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.1);
+  }
+  .mode-card.active::before {
+    background: var(--accent-gold);
+  }
+  .mode-card .mode-icon { font-size: 28px; flex-shrink: 0; }
   .mode-card .mode-info { flex:1; }
-  .mode-card .mode-name { font-size:15px; font-weight:bold; color:#3e2723; }
-  .mode-card .mode-desc { font-size:13px; color:#8d6e63; }
-  
-  /* ===== 6. 答题游戏化 ===== */
-  .float-score { position:fixed; font-size:24px; font-weight:bold; color:#4caf50; pointer-events:none; z-index:999; animation:floatUp 1s ease forwards; text-shadow:0 2px 4px rgba(0,0,0,0.2); }
-  @keyframes floatUp { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-60px) scale(1.3); } }
-  .float-wrong { color:#f44336 !important; }
-  .egg-tip { margin-top:16px; padding:12px; background:#e3f2fd; border-radius:8px; font-size:14px; color:#1565c0; display:none; animation:fadeIn 0.5s ease; }
+  .mode-card .mode-name { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.5px; }
+  .mode-card .mode-desc { font-size: 13px; color: var(--text-tertiary); margin-top: 2px; }
+
+  /* ===== 分享海报 ===== */
+  .share-poster {
+    background: linear-gradient(160deg, var(--bg-warm) 0%, #ffffff 40%, #faf7f2 60%, var(--bg-warm) 100%);
+    border: 2px solid var(--accent-gold);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 24px rgba(61, 43, 31, 0.08);
+  }
+  .share-poster::before {
+    content: "";
+    position:absolute;
+    top: -40px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
+    background: rgba(212, 168, 67, 0.08);
+    border-radius: 50%;
+    z-index: 0;
+  }
+  .share-poster::after {
+    content: "";
+    position:absolute;
+    bottom: -30px;
+    left: -30px;
+    width: 80px;
+    height: 80px;
+    background: rgba(183, 28, 28, 0.04);
+    border-radius: 50%;
+    z-index: 0;
+  }
+  .share-poster .poster-title {
+    font-size: 24px;
+    color: var(--accent-red);
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+    position: relative;
+    z-index: 1;
+  }
+  .share-poster .poster-name {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+    position: relative;
+    z-index: 1;
+  }
+  .share-poster .poster-score {
+    font-size: 56px;
+    color: var(--accent-red);
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 2px 2px 0 rgba(212, 168, 67, 0.15);
+    position: relative;
+    z-index: 1;
+  }
+  .share-poster .poster-title-name {
+    font-size: 22px;
+    color: var(--accent-gold);
+    margin: var(--spacing-sm) 0;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+  }
+  .share-poster .poster-stats {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-md);
+    line-height: 1.8;
+    position: relative;
+    z-index: 1;
+  }
+  .share-poster .poster-footer {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px dashed var(--accent-gold);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== 奖杯卡片 ===== */
+  .trophy-card {
+    background: linear-gradient(160deg, var(--bg-warm) 0%, #ffffff 40%, #faf7f2 60%, var(--bg-warm) 100%);
+    border: 2px solid var(--accent-gold);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    text-align:center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 24px rgba(61, 43, 31, 0.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .trophy-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(212, 168, 67, 0.04) 0%, transparent 50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .trophy-icon { 
+    font-size: 52px; 
+    margin-bottom: var(--spacing-sm); 
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+    position: relative;
+    z-index: 1;
+  }
+  .trophy-rank { font-size: 36px; color: var(--accent-red); font-weight: 700; position: relative; z-index: 1; }
+  .trophy-detail { font-size: 14px; color: var(--text-secondary); margin-top: var(--spacing-sm); position: relative; z-index: 1; }
+  .trophy-bar {
+    width:100%;
+    height: 10px;
+    background: var(--border-subtle);
+    border-radius: 5px;
+    margin-top: var(--spacing-md);
+    overflow:hidden;
+    position: relative;
+    z-index: 1;
+  }
+  .trophy-bar-fill {
+    height:100%;
+    background: linear-gradient(90deg, var(--accent-gold), var(--accent-red-soft));
+    border-radius: 5px;
+    transition: width 1.5s var(--transition-slow);
+  }
+
+  /* ===== 彩蛋提示 ===== */
+  .egg-tip {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--bg-info);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--accent-blue);
+    display:none;
+    animation: fadeInUp 0.5s var(--transition-base);
+  }
   .egg-tip.show { display:block; }
-  
-  /* ===== 7. 实时排名奖杯 ===== */
-  .trophy-card { background:linear-gradient(135deg, #fff8e1 0%, #fff 50%, #fff8e1 100%); border:2px solid #d4a843; border-radius:12px; padding:20px; text-align:center; }
-  .trophy-icon { font-size:48px; margin-bottom:8px; }
-  .trophy-rank { font-size:32px; color:#b71c1c; font-weight:bold; }
-  .trophy-detail { font-size:14px; color:#8d6e63; margin-top:8px; }
-  .trophy-bar { width:100%; height:8px; background:#e8e0d0; border-radius:4px; margin-top:12px; overflow:hidden; }
-  .trophy-bar-fill { height:100%; background:linear-gradient(90deg, #d4a843, #c43b3b); border-radius:4px; transition:width 1s ease; }
-  
-  /* ===== 9. 背景音乐 ===== */
-  .music-btn { position:fixed; bottom:20px; right:20px; width:44px; height:44px; border-radius:50%; background:#fff; border:2px solid #d4a843; font-size:20px; display:flex; justify-content:center; align-items:center; cursor:pointer; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
-  .music-btn.playing { animation:spin 3s linear infinite; }
+
+  /* ===== 飘字动画 ===== */
+  .float-score {
+    position:fixed;
+    font-size: 28px;
+    font-weight: 700;
+    pointer-events:none;
+    z-index: 999;
+    animation: floatUp 1s ease forwards;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  @keyframes floatUp {
+    0% { opacity:1; transform: translateY(0) scale(1); }
+    100% { opacity:0; transform: translateY(-60px) scale(1.3); }
+  }
+  .float-wrong { color: #f44336; }
+
+  /* ===== 音乐按钮 ===== */
+  .music-btn {
+    position:fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--accent-gold);
+    font-size: 22px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    z-index:100;
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  }
+  .music-btn:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-lg);
+  }
+  .music-btn.playing { animation: spin 3s linear infinite; }
+
+  /* ===== Toast ===== */
+  .toast {
+    position:fixed;
+    top: 24px;
+    left:50%;
+    transform: translateX(-50%) translateY(-60px);
+    background: var(--text-primary);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index:1000;
+    transition: transform 0.3s var(--transition-base);
+    box-shadow: var(--shadow-lg);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== 警告遮罩 ===== */
+  .warn-overlay {
+    position:fixed;
+    inset:0;
+    background: rgba(61, 43, 31, 0.92);
+    z-index:2000;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    color: #fff;
+    text-align:center;
+    padding: var(--spacing-lg);
+  }
+  .warn-overlay.active { display:flex; }
+  .warn-overlay h2 { color: #ff5252; font-size: 28px; margin-bottom: var(--spacing-md); font-weight: 700; }
+  .warn-overlay p { font-size: 16px; line-height: 1.6; color: var(--border-subtle); }
+
+  /* ===== 标签 ===== */
+  .tag {
+    display:inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 6px;
+  }
+  .tag.rec { background: var(--bg-success); color: var(--accent-green-dark); }
+  .tag.dom { background: var(--bg-info); color: var(--accent-blue); }
+  .tag.int { background: var(--bg-error); color: #c62828; }
+
+  /* ===== 工具类 ===== */
+  .hidden { display:none !important; } /* Utility: enforce display:none override in all contexts */
+  .collapse { max-height:0; overflow:hidden; transition: max-height 0.3s var(--transition-base); }
+  .collapse.open { max-height: 800px; }
+
+  /* ===== 响应式优化 ===== */
+  @media (max-width: 480px) {
+    .page { padding: var(--spacing-md) 14px; }
+    .header h1 { font-size: 26px; }
+    .card { padding: var(--spacing-md); }
+    .card-title { font-size: 16px; }
+    .question-text { font-size: 16px; }
+    .option { padding: 14px; font-size: 15px; }
+    .result-score .score-num { font-size: 48px; }
+    .result-score .title-name { font-size: 20px; }
+    .share-poster { padding: var(--spacing-lg); }
+    .share-poster .poster-score { font-size: 44px; }
+    .share-poster .poster-title { font-size: 20px; }
+    .trophy-card { padding: var(--spacing-lg); }
+    .trophy-rank { font-size: 28px; }
+    .stat-item .val { font-size: 18px; }
+    .btn { font-size: 16px; padding: 14px; }
+  }
+
+  @media (min-width: 640px) {
+    .page { padding: var(--spacing-xl) var(--spacing-lg); }
+  }
+
+  /* ===== 背景图片淡化系统 ===== */
+  .page-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-repeat: no-repeat;
+    opacity: 0.06;
+  }
+  .page-bg-home {
+    background-image: url('images/team_chibi.png');
+    background-position: center bottom 80px;
+    background-size: 280px auto;
+  }
+  .page-bg-quiz {
+    background-image: url('images/bamboo.png');
+    background-position: right top 60px;
+    background-size: 120px auto;
+  }
+  .page-bg-result {
+    background-image: url('images/team_food.png');
+    background-position: center top 100px;
+    background-size: 200px auto;
+  }
+  .corner-deco {
+    position: absolute;
+    max-width: 100%;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+    opacity: 0.08;
+  }
+  .quiz-deco { width: 80px; }
 </style>
 </head>
 <body>
+<div class="cloud-deco cloud-deco-1" aria-hidden="true"></div>
+<div class="cloud-deco cloud-deco-2" aria-hidden="true"></div>
 <div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-cloud"></div>
+  <div class="loading-staff"></div>
   <div class="loading-text">🐵 大圣正在取经路上...</div>
   <div class="loading-sub">200题题库加载中</div>
 </div>
@@ -155,6 +1034,7 @@
 <div class="warn-overlay" id="warnOverlay"><h2>⚠️ 警告</h2><p id="warnText">检测到切屏行为，请勿切换页面！</p></div>
 
 <div id="homePage" class="page active">
+  <div class="page-bg page-bg-home" aria-hidden="true"></div>
   <div class="header">
     <div class="home-deco">🐵📿☁️</div>
     <h1>《西游记》知识闯关</h1>
@@ -162,8 +1042,8 @@
   </div>
   <div class="card">
     <div class="card-title">📖 学生答题</div>
-    <div class="input-group"><label>你的姓名</label><input type="text" id="studentName" placeholder="请输入姓名" maxlength="20"></div>
-    <div class="input-group"><label>选择闯关模式</label></div>
+    <div class="input-group"><label for="studentName">你的姓名</label><input type="text" id="studentName" placeholder="请输入姓名" maxlength="20"></div>
+    <div class="input-group"><label for="quizMode">选择闯关模式</label></div>
     <div id="modeCards">
       <div class="mode-card active" data-mode="mixed" onclick="selectMode(this)">
         <div class="mode-icon">🌀</div>
@@ -207,13 +1087,13 @@
 
   <div class="card" style="padding-top:14px; display:none;">
     <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleCloudConfig()">
-      <span style="font-size:15px; color:#5d4037; font-weight:bold;">☁️ 云端成绩配置（老师用）</span>
-      <span id="cloudToggleIcon" style="font-size:18px; color:#8d6e63;">▼</span>
+      <span style="font-size:15px; color:var(--text-secondary); font-weight:700;">☁️ 云端成绩配置（老师用）</span>
+      <span id="cloudToggleIcon" style="font-size:18px; color:var(--text-tertiary);">▼</span>
     </div>
     <div id="cloudConfigBox" class="collapse">
       <div style="margin-top:12px;">
         <div class="input-group">
-          <label>提交方式</label>
+          <label for="cloudType">提交方式</label>
           <select id="cloudType" onchange="onCloudTypeChange()">
             <option value="">不使用云端（离线复制）</option>
             <option value="bmob" selected>Bmob 后端云（实时排名）</option>
@@ -221,8 +1101,8 @@
           <div class="hint" id="cloudHint">选择云端提交方式后，学生答题完毕会自动提交成绩。</div>
         </div>
         <div class="input-group" id="bmobBox">
-          <label>Bmob AppID</label><input type="text" id="bmobId" value="c225d2be6d94642ba7dd9f77cbe26b60" placeholder="填入 Bmob AppID">
-          <label style="margin-top:8px;">Bmob REST API Key</label><input type="text" id="bmobKey" value="74d63e8649e0bbf472decb081ad61f6f" placeholder="填入 Bmob REST API Key">
+          <label for="bmobId">Bmob AppID</label><input type="text" id="bmobId" value="c225d2be6d94642ba7dd9f77cbe26b60" placeholder="填入 Bmob AppID">
+          <label style="margin-top:8px;" for="bmobKey">Bmob REST API Key</label><input type="text" id="bmobKey" value="74d63e8649e0bbf472decb081ad61f6f" placeholder="填入 Bmob REST API Key">
         </div>
         <div class="input-group" id="hintBox">
           <div class="hint" id="detailHint">学生答题后自动提交到 Bmob 云端，答完即可查看实时排名。</div>
@@ -235,15 +1115,18 @@
 
   <div class="card">
     <div class="card-title">👨‍🏫 教师入口</div>
-    <div class="input-group"><label>管理密码</label><input type="password" id="adminPwd" placeholder="请输入密码"></div>
+    <div class="input-group"><label for="adminPwd">管理密码</label><input type="password" id="adminPwd" placeholder="请输入密码"></div>
     <button class="btn btn-secondary" onclick="enterAdmin()">进入成绩汇总</button>
   </div>
 </div>
 
 <div id="quizPage" class="page">
+  <div class="page-bg page-bg-quiz" aria-hidden="true"></div>
   <div class="quiz-header"><div class="info" id="quizInfo">第 1 / 20 题</div><div class="info" id="timerText">15 秒</div></div>
   <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
-  <div class="card" style="padding-top:24px;">
+  <div class="card" style="padding-top:24px; position:relative;">
+    <img src="images/plum_blossom.png" alt="" class="corner-deco quiz-deco" style="right:-10px; top:-10px;" aria-hidden="true">
+    <img src="images/plum_blossom.png" alt="" class="corner-deco quiz-deco" style="left:-10px; bottom:-10px; transform:scaleX(-1);" aria-hidden="true">
     <div class="question-text" id="questionText">题目加载中...</div>
     <div class="options" id="optionsBox"></div>
     <div class="explanation" id="explanationBox"></div>
@@ -256,6 +1139,7 @@
 </div>
 
 <div id="resultPage" class="page">
+  <div class="page-bg page-bg-result" aria-hidden="true"></div>
   <div class="header"><h1>🎉 答题完成</h1></div>
   <div class="card">
     <div class="result-score">
@@ -297,7 +1181,7 @@
         <div class="poster-stats" id="posterStats"></div>
         <div class="poster-footer">扫码参与挑战，看看你能排第几 👇</div>
       </div>
-      <div style="font-size:12px; color:#8d6e63; text-align:center; margin-top:8px;">↑ 长按上方卡片可保存截图</div>
+      <div style="font-size:12px; color:var(--text-tertiary); text-align:center; margin-top:8px;">↑ 长按上方卡片可保存截图</div>
     </div>
   </div>
   <div style="text-align:center; margin-top:16px;"><button class="btn" onclick="goHome()">再答一次</button></div>
@@ -335,22 +1219,22 @@
   <div class="card" id="teacherChartCard" style="display:none;">
     <div class="card-title">📊 班级数据分析</div>
     <div style="margin-bottom:16px;">
-      <div style="font-size:14px; color:#5d4037; margin-bottom:8px;">分数分布</div>
+      <div style="font-size:14px; color:var(--text-secondary); margin-bottom:8px;">分数分布</div>
       <canvas id="scoreChart" width="560" height="200" style="max-width:100%;"></canvas>
     </div>
     <div style="margin-bottom:16px;">
-      <div style="font-size:14px; color:#5d4037; margin-bottom:8px;">正确率</div>
+      <div style="font-size:14px; color:var(--text-secondary); margin-bottom:8px;">正确率</div>
       <canvas id="accuracyChart" width="560" height="200" style="max-width:100%;"></canvas>
     </div>
     <div>
-      <div style="font-size:14px; color:#5d4037; margin-bottom:8px;">用时统计</div>
+      <div style="font-size:14px; color:var(--text-secondary); margin-bottom:8px;">用时统计</div>
       <canvas id="timeChart" width="560" height="200" style="max-width:100%;"></canvas>
     </div>
   </div>
   <div style="text-align:center; margin-top:16px;"><button class="btn btn-outline" onclick="goHome()">返回首页</button></div>
 </div>
 
-<script>var QUESTIONS = [{"id":1,"difficulty":1,"category":"文学常识","question":"《西游记》的作者是谁？","options":["罗贯中", "吴承恩", "施耐庵", "曹雪芹"],"answer":1,"explanation":"正确答案：吴承恩","chapter":"原著","type":"文学常识"},{"id":2,"difficulty":1,"category":"文学常识","question":"《西游记》属于什么体裁的小说？","options":["长篇章回体神魔小说", "短篇小说集", "散文体传记", "话本小说"],"answer":0,"explanation":"正确答案：长篇章回体神魔小说","chapter":"原著","type":"文学常识"},{"id":3,"difficulty":1,"category":"文学常识","question":"《西游记》主要讲述了什么故事？","options":["梁山好汉聚义", "唐僧师徒西天取经", "三国争霸", "贾宝玉与林黛玉的爱情"],"answer":1,"explanation":"正确答案：唐僧师徒西天取经","chapter":"原著","type":"文学常识"},{"id":4,"difficulty":1,"category":"人物识别","question":"孙悟空的第一个师父是谁？","options":["唐僧", "观音菩萨", "菩提祖师", "如来佛祖"],"answer":2,"explanation":"正确答案：菩提祖师","chapter":"原著","type":"人物识别"},{"id":5,"difficulty":1,"category":"人物识别","question":"唐僧的原型人物是谁？","options":["玄奘", "鉴真", "法显", "慧能"],"answer":0,"explanation":"正确答案：玄奘","chapter":"原著","type":"人物识别"},{"id":6,"difficulty":1,"category":"文学常识","question":"《西游记》中，唐僧前往西天取经，途中一共经历了多少难？","options":["七十二难", "八十一难", "九十九难", "一百零八难"],"answer":1,"explanation":"正确答案：八十一难","chapter":"原著","type":"文学常识"},{"id":7,"difficulty":1,"category":"人物识别","question":"猪八戒原是天庭的什么职位？","options":["卷帘大将", "天蓬元帅", "托塔天王", "哪吒太子"],"answer":1,"explanation":"正确答案：天蓬元帅","chapter":"原著","type":"人物识别"},{"id":8,"difficulty":1,"category":"人物识别","question":"沙僧原是天庭的什么职位？","options":["天蓬元帅", "卷帘大将", "弼马温", "增长天王"],"answer":1,"explanation":"正确答案：卷帘大将","chapter":"原著","type":"人物识别"},{"id":9,"difficulty":1,"category":"回目情节","question":"孙悟空的兵器叫什么名字？","options":["九齿钉耙", "如意金箍棒", "降妖宝杖", "乾坤圈"],"answer":1,"explanation":"正确答案：如意金箍棒","chapter":"原著","type":"回目情节"},{"id":10,"difficulty":1,"category":"回目情节","question":"孙悟空的兵器原本是什么人治水时留下的？","options":["大禹", "李冰", "姜子牙", "神农"],"answer":0,"explanation":"正确答案：大禹","chapter":"原著","type":"回目情节"},{"id":11,"difficulty":1,"category":"回目情节","question":"孙悟空大闹天宫后，被如来佛祖压在了哪里？","options":["太行山", "五行山", "昆仑山", "华山"],"answer":1,"explanation":"正确答案：五行山","chapter":"原著","type":"回目情节"},{"id":12,"difficulty":1,"category":"回目情节","question":"孙悟空护送唐僧取经成功后被封为什么？","options":["斗战胜佛", "净坛使者", "金身罗汉", "旃檀功德佛"],"answer":0,"explanation":"正确答案：斗战胜佛","chapter":"原著","type":"回目情节"},{"id":13,"difficulty":1,"category":"回目情节","question":"猪八戒护送唐僧取经成功后被封为什么？","options":["斗战胜佛", "净坛使者", "金身罗汉", "广力菩萨"],"answer":1,"explanation":"正确答案：净坛使者","chapter":"原著","type":"回目情节"},{"id":14,"difficulty":1,"category":"回目情节","question":"沙僧护送唐僧取经成功后被封为什么？","options":["斗战胜佛", "净坛使者", "金身罗汉", "八部天龙"],"answer":2,"explanation":"正确答案：金身罗汉","chapter":"原著","type":"回目情节"},{"id":15,"difficulty":1,"category":"回目情节","question":"白龙马护送唐僧取经成功后被封为什么？","options":["斗战胜佛", "净坛使者", "金身罗汉", "八部天龙广力菩萨"],"answer":3,"explanation":"正确答案：八部天龙广力菩萨","chapter":"原著","type":"回目情节"},{"id":16,"difficulty":1,"category":"人物识别","question":"《西游记》中，孙悟空在花果山自称什么？","options":["齐天大圣", "美猴王", "弼马温", "孙行者"],"answer":1,"explanation":"正确答案：美猴王","chapter":"原著","type":"人物识别"},{"id":17,"difficulty":1,"category":"回目情节","question":"孙悟空在菩提祖师处学到了什么本领？","options":["三十六变", "七十二变", "十八般武艺", "一百零八变"],"answer":1,"explanation":"正确答案：七十二变","chapter":"原著","type":"回目情节"},{"id":18,"difficulty":1,"category":"回目情节","question":"孙悟空在菩提祖师处学到了什么飞行法术？","options":["腾云驾雾", "筋斗云", "御剑飞行", "遁地术"],"answer":1,"explanation":"正确答案：筋斗云","chapter":"原著","type":"回目情节"},{"id":19,"difficulty":1,"category":"文学常识","question":"《西游记》中，孙悟空第一次被天庭招安时被封为什么官职？","options":["齐天大圣", "弼马温", "斗战胜佛", "天蓬元帅"],"answer":1,"explanation":"正确答案：弼马温","chapter":"原著","type":"文学常识"},{"id":20,"difficulty":1,"category":"文学常识","question":"《西游记》中，孙悟空第二次被天庭招安时被封为什么？","options":["弼马温", "齐天大圣", "斗战胜佛", "美猴王"],"answer":1,"explanation":"正确答案：齐天大圣","chapter":"原著","type":"文学常识"},{"id":21,"difficulty":1,"category":"回目情节","question":"孙悟空在太上老君的炼丹炉里煅烧了多少天，炼成了火眼金睛？","options":["四十九天", "七七四十九天", "八十一天", "一百天"],"answer":1,"explanation":"正确答案：七七四十九天","chapter":"原著","type":"回目情节"},{"id":22,"difficulty":1,"category":"人物识别","question":"《西游记》中，红孩儿是谁的儿子？","options":["孙悟空", "牛魔王", "东海龙王", "托塔李天王"],"answer":1,"explanation":"正确答案：牛魔王","chapter":"原著","type":"人物识别"},{"id":23,"difficulty":1,"category":"人物识别","question":"红孩儿住在什么地方？","options":["火焰山", "号山", "花果山", "黑风山"],"answer":1,"explanation":"正确答案：号山","chapter":"原著","type":"人物识别"},{"id":24,"difficulty":1,"category":"回目情节","question":"红孩儿最终被谁收服？","options":["如来佛祖", "观音菩萨", "太上老君", "玉皇大帝"],"answer":1,"explanation":"正确答案：观音菩萨","chapter":"原著","type":"回目情节"},{"id":25,"difficulty":1,"category":"回目情节","question":"红孩儿被收服后成为了什么？","options":["善财童子", "守山大神", "金身罗汉", "净坛使者"],"answer":0,"explanation":"正确答案：善财童子","chapter":"原著","type":"回目情节"},{"id":26,"difficulty":1,"category":"回目情节","question":"《西游记》中，唐僧是在哪里收孙悟空为徒弟的？","options":["五行山", "流沙河", "高老庄", "鹰愁涧"],"answer":0,"explanation":"正确答案：五行山","chapter":"原著","type":"回目情节"},{"id":27,"difficulty":1,"category":"回目情节","question":"《西游记》中，唐僧是在哪里收猪八戒为徒弟的？","options":["五行山", "高老庄", "流沙河", "鹰愁涧"],"answer":1,"explanation":"正确答案：高老庄","chapter":"原著","type":"回目情节"},{"id":28,"difficulty":1,"category":"回目情节","question":"《西游记》中，唐僧是在哪里收沙僧为徒弟的？","options":["五行山", "高老庄", "流沙河", "鹰愁涧"],"answer":2,"explanation":"正确答案：流沙河","chapter":"原著","type":"回目情节"},{"id":29,"difficulty":1,"category":"回目情节","question":"《西游记》中，白龙马原来是什么身份？","options":["东海龙王太子", "西海龙王三太子", "南海龙王太子", "北海龙王太子"],"answer":1,"explanation":"正确答案：西海龙王三太子","chapter":"原著","type":"回目情节"},{"id":30,"difficulty":1,"category":"回目情节","question":"白龙马因为什么被贬为凡马？","options":["偷盗仙丹", "烧毁殿上明珠", "大闹龙宫", "与虾兵蟹将争斗"],"answer":1,"explanation":"正确答案：烧毁殿上明珠","chapter":"原著","type":"回目情节"},{"id":31,"difficulty":1,"category":"人物识别","question":"铁扇公主又称为什么？","options":["罗刹女", "玉面公主", "杏仙", "百花羞"],"answer":0,"explanation":"正确答案：罗刹女","chapter":"原著","type":"人物识别"},{"id":32,"difficulty":1,"category":"回目情节","question":"铁扇公主的芭蕉扇住在哪里？","options":["火焰山", "翠云山芭蕉洞", "积雷山", "号山"],"answer":1,"explanation":"正确答案：翠云山芭蕉洞","chapter":"原著","type":"回目情节"},{"id":33,"difficulty":1,"category":"回目情节","question":"火焰山是怎么形成的？","options":["孙悟空踢翻炼丹炉", "太上老君炼丹炉掉下砖块", "天火下凡", "火山喷发"],"answer":1,"explanation":"正确答案：太上老君炼丹炉掉下砖块","chapter":"原著","type":"回目情节"},{"id":34,"difficulty":1,"category":"回目情节","question":"《西游记》中，唐僧师徒西天取经的目的地是哪里？","options":["东海", "西天大雷音寺", "南海", "天庭"],"answer":1,"explanation":"正确答案：西天大雷音寺","chapter":"原著","type":"回目情节"},{"id":35,"difficulty":1,"category":"回目情节","question":"唐僧取经出发时，唐太宗送给他什么作为化斋之用？","options":["袈裟", "紫金钵盂", "禅杖", "通关文牒"],"answer":1,"explanation":"正确答案：紫金钵盂","chapter":"原著","type":"回目情节"},{"id":36,"difficulty":1,"category":"人物识别","question":"《西游记》中，托塔李天王的塔是谁赐给他的？","options":["玉皇大帝", "如来佛祖", "太上老君", "观音菩萨"],"answer":1,"explanation":"正确答案：如来佛祖","chapter":"原著","type":"人物识别"},{"id":37,"difficulty":1,"category":"回目情节","question":"唐僧在出发前，在法门寺立下了什么愿？","options":["逢庙烧香，遇寺拜佛，见塔扫塔", "每天吃素", "不杀生", "不近女色"],"answer":0,"explanation":"正确答案：逢庙烧香，遇寺拜佛，见塔扫塔","chapter":"原著","type":"回目情节"},{"id":38,"difficulty":1,"category":"回目情节","question":"白骨精先后变化成了什么来欺骗唐僧？","options":["女子、老太太、老头", "美女、老翁、孩童", "村姑、和尚、道士", "蝴蝶、蜜蜂、蚊子"],"answer":0,"explanation":"正确答案：女子、老太太、老头","chapter":"原著","type":"回目情节"},{"id":39,"difficulty":1,"category":"回目情节","question":"孙悟空第一次被唐僧赶走是因为什么？","options":["三打白骨精", "打死六个强盗", "偷吃人参果", "大闹天宫"],"answer":1,"explanation":"正确答案：打死六个强盗","chapter":"原著","type":"回目情节"},{"id":40,"difficulty":1,"category":"回目情节","question":"孙悟空第二次被唐僧赶走是因为什么？","options":["打死六个强盗", "三打白骨精", "真假美猴王", "偷吃人参果"],"answer":1,"explanation":"正确答案：三打白骨精","chapter":"原著","type":"回目情节"},{"id":41,"difficulty":1,"category":"回目情节","question":"孙悟空第三次被唐僧赶走是因为什么？","options":["三打白骨精", "打死六个强盗", "真假美猴王", "偷吃人参果"],"answer":2,"explanation":"正确答案：真假美猴王","chapter":"原著","type":"回目情节"},{"id":42,"difficulty":1,"category":"回目情节","question":"孙悟空第一次被逐后，是谁劝他回去的？","options":["观音菩萨", "东海龙王", "猪八戒", "太白金星"],"answer":1,"explanation":"正确答案：东海龙王","chapter":"原著","type":"回目情节"},{"id":43,"difficulty":1,"category":"回目情节","question":"孙悟空第一次被逐后，唐僧用什么控制了他？","options":["金箍棒", "紧箍咒", "定身法", "捆仙绳"],"answer":1,"explanation":"正确答案：紧箍咒","chapter":"原著","type":"回目情节"},{"id":44,"difficulty":1,"category":"回目情节","question":"金池长老因为什么放火烧唐僧师徒？","options":["想吃唐僧肉", "贪图袈裟", "怨恨孙悟空", "误会"],"answer":1,"explanation":"正确答案：贪图袈裟","chapter":"原著","type":"回目情节"},{"id":45,"difficulty":1,"category":"回目情节","question":"黑熊精偷走袈裟后，孙悟空请来了谁收服他？","options":["如来佛祖", "观音菩萨", "太上老君", "文殊菩萨"],"answer":1,"explanation":"正确答案：观音菩萨","chapter":"原著","type":"回目情节"},{"id":46,"difficulty":1,"category":"回目情节","question":"黑熊精被收服后成为了什么？","options":["善财童子", "守山大神", "金身罗汉", "净坛使者"],"answer":1,"explanation":"正确答案：守山大神","chapter":"原著","type":"回目情节"},{"id":47,"difficulty":1,"category":"回目情节","question":"黄风岭的黄风怪真身是什么？","options":["锦毛貂鼠", "老虎", "狮子", "狐狸"],"answer":0,"explanation":"正确答案：锦毛貂鼠","chapter":"原著","type":"回目情节"},{"id":48,"difficulty":1,"category":"回目情节","question":"孙悟空请来谁借去定风珠对付黄风怪？","options":["观音菩萨", "灵吉菩萨", "文殊菩萨", "普贤菩萨"],"answer":1,"explanation":"正确答案：灵吉菩萨","chapter":"原著","type":"回目情节"},{"id":49,"difficulty":1,"category":"回目情节","question":"四圣试禅心中，是哪四位菩萨考验唐僧师徒？","options":["观音、文殊、普贤、黎山老母", "观音、文殊、普贤、地藏王", "观音、文殊、普贤、太白金星", "观音、文殊、普贤、太上老君"],"answer":0,"explanation":"正确答案：观音、文殊、普贤、黎山老母","chapter":"原著","type":"回目情节"},{"id":50,"difficulty":1,"category":"回目情节","question":"四圣试禅心中，谁被美色诱惑后被绑在树上？","options":["孙悟空", "猪八戒", "沙僧", "唐僧"],"answer":1,"explanation":"正确答案：猪八戒","chapter":"原著","type":"回目情节"},{"id":51,"difficulty":1,"category":"回目情节","question":"大闹五庄观中，孙悟空偷吃了什么？","options":["仙桃", "人参果", "仙丹", "唐僧肉"],"answer":1,"explanation":"正确答案：人参果","chapter":"原著","type":"回目情节"},{"id":52,"difficulty":1,"category":"回目情节","question":"大闹五庄观中，孙悟空一怒之下推倒了什么树？","options":["蟠桃树", "人参果树", "菩提树", "芭蕉树"],"answer":1,"explanation":"正确答案：人参果树","chapter":"原著","type":"回目情节"},{"id":53,"difficulty":1,"category":"回目情节","question":"大闹五庄观中，最终是谁救活了人参果树？","options":["如来佛祖", "观音菩萨", "太上老君", "镇元大仙"],"answer":1,"explanation":"正确答案：观音菩萨","chapter":"原著","type":"回目情节"},{"id":54,"difficulty":1,"category":"回目情节","question":"大闹五庄观后，镇元大仙和孙悟空结为什么关系？","options":["师徒", "兄弟", "主仆", "仇敌"],"answer":1,"explanation":"正确答案：兄弟","chapter":"原著","type":"回目情节"},{"id":55,"difficulty":1,"category":"回目情节","question":"双战黄袍怪中，黄袍怪将唐僧变成了什么？","options":["老虎", "狮子", "鹿", "羊"],"answer":0,"explanation":"正确答案：老虎","chapter":"原著","type":"回目情节"},{"id":56,"difficulty":1,"category":"回目情节","question":"双战黄袍怪中，白龙马变成什么去刺杀黄袍怪？","options":["宫女", "侍卫", "小妖", "公主"],"answer":0,"explanation":"正确答案：宫女","chapter":"原著","type":"回目情节"},{"id":57,"difficulty":1,"category":"回目情节","question":"双战黄袍怪中，猪八戒用什么方法请回孙悟空？","options":["激将法", "苦肉计", "美人计", "空城计"],"answer":0,"explanation":"正确答案：激将法","chapter":"原著","type":"回目情节"},{"id":58,"difficulty":1,"category":"回目情节","question":"黄袍怪原是天庭的哪位星宿下界？","options":["奎木狼", "亢金龙", "牛金牛", "娄金狗"],"answer":0,"explanation":"正确答案：奎木狼","chapter":"原著","type":"回目情节"},{"id":59,"difficulty":1,"category":"回目情节","question":"大战红孩儿中，孙悟空找谁借水反而被烧伤？","options":["观音菩萨", "东海龙王", "太上老君", "如来佛祖"],"answer":1,"explanation":"正确答案：东海龙王","chapter":"原著","type":"回目情节"},{"id":60,"difficulty":1,"category":"回目情节","question":"大战红孩儿中，猪八戒去找观音结果遇到了什么？","options":["真的观音菩萨", "红孩儿假扮的观音菩萨", "白骨精", "蜘蛛精"],"answer":1,"explanation":"正确答案：红孩儿假扮的观音菩萨","chapter":"原著","type":"回目情节"},{"id":61,"difficulty":1,"category":"回目情节","question":"真假美猴王中，假悟空是什么妖怪？","options":["六耳猕猴", "通臂猿猴", "赤尻马猴", "灵明石猴"],"answer":0,"explanation":"正确答案：六耳猕猴","chapter":"原著","type":"回目情节"},{"id":62,"difficulty":1,"category":"回目情节","question":"真假美猴王中，最终是谁分辨出了真假悟空？","options":["观音菩萨", "如来佛祖", "玉皇大帝", "唐僧"],"answer":1,"explanation":"正确答案：如来佛祖","chapter":"原著","type":"回目情节"},{"id":63,"difficulty":1,"category":"回目情节","question":"三调芭蕉扇中，孙悟空一调芭蕉扇时，铁扇公主把他扇到了哪里？","options":["火焰山", "小须弥山", "花果山", "天庭"],"answer":1,"explanation":"正确答案：小须弥山","chapter":"原著","type":"回目情节"},{"id":64,"difficulty":1,"category":"回目情节","question":"三调芭蕉扇中，孙悟空一调芭蕉扇后，找谁借了定风丹？","options":["观音菩萨", "灵吉菩萨", "文殊菩萨", "普贤菩萨"],"answer":1,"explanation":"正确答案：灵吉菩萨","chapter":"原著","type":"回目情节"},{"id":65,"difficulty":1,"category":"回目情节","question":"三调芭蕉扇中，孙悟空二调芭蕉扇时变成了谁？","options":["唐僧", "牛魔王", "猪八戒", "太上老君"],"answer":1,"explanation":"正确答案：牛魔王","chapter":"原著","type":"回目情节"},{"id":66,"difficulty":1,"category":"回目情节","question":"三调芭蕉扇中，牛魔王变成谁把扇子骗了回去？","options":["唐僧", "孙悟空", "猪八戒", "沙僧"],"answer":2,"explanation":"正确答案：猪八戒","chapter":"原著","type":"回目情节"},{"id":67,"difficulty":1,"category":"回目情节","question":"三调芭蕉扇中，最终是谁帮助孙悟空降服了牛魔王？","options":["观音菩萨", "哪吒和众神", "如来佛祖", "太上老君"],"answer":1,"explanation":"正确答案：哪吒和众神","chapter":"原著","type":"回目情节"},{"id":68,"difficulty":1,"category":"回目情节","question":"三调芭蕉扇中，铁扇公主最终被迫交出了扇子，她用什么扇灭了火焰山的大火？","options":["一把扇子", "芭蕉扇", "铁扇", "羽扇"],"answer":1,"explanation":"正确答案：芭蕉扇","chapter":"原著","type":"回目情节"},{"id":69,"difficulty":1,"category":"回目情节","question":"《西游记》第61回的回目是什么？","options":["孙行者三调芭蕉扇", "猪八戒助力败魔王", "猪八戒助力败魔王 孙行者三调芭蕉扇", "牛魔王罢战赴华筵"],"answer":2,"explanation":"正确答案：猪八戒助力败魔王 孙行者三调芭蕉扇","chapter":"原著","type":"回目情节"},{"id":70,"difficulty":1,"category":"回目情节","question":"《西游记》第62回的回目是什么？","options":["涤垢洗心惟扫塔", "缚魔归主乃修身", "涤垢洗心惟扫塔 缚魔归主乃修身", "二僧荡怪闹龙宫"],"answer":2,"explanation":"正确答案：涤垢洗心惟扫塔 缚魔归主乃修身","chapter":"原著","type":"回目情节"},{"id":71,"difficulty":1,"category":"回目情节","question":"《西游记》第63回的回目是什么？","options":["二僧荡怪闹龙宫", "群圣除邪获宝贝", "二僧荡怪闹龙宫 群圣除邪获宝贝", "荆棘岭悟能努力"],"answer":2,"explanation":"正确答案：二僧荡怪闹龙宫 群圣除邪获宝贝","chapter":"原著","type":"回目情节"},{"id":72,"difficulty":1,"category":"回目情节","question":"《西游记》第64回的回目是什么？","options":["荆棘岭悟能努力", "木仙庵三藏谈诗", "荆棘岭悟能努力 木仙庵三藏谈诗", "妖邪假设小雷音"],"answer":2,"explanation":"正确答案：荆棘岭悟能努力 木仙庵三藏谈诗","chapter":"原著","type":"回目情节"},{"id":73,"difficulty":1,"category":"回目情节","question":"《西游记》第65回的回目是什么？","options":["妖邪假设小雷音", "四众皆遭大厄难", "妖邪假设小雷音 四众皆遭大厄难", "荆棘岭悟能努力"],"answer":2,"explanation":"正确答案：妖邪假设小雷音 四众皆遭大厄难","chapter":"原著","type":"回目情节"},{"id":74,"difficulty":1,"category":"回目情节","question":"金光寺的佛宝舍利子是被谁盗走的？","options":["九头虫", "万圣龙王的驸马", "黑熊精", "黄眉怪"],"answer":1,"explanation":"正确答案：万圣龙王的驸马","chapter":"原著","type":"回目情节"},{"id":75,"difficulty":1,"category":"回目情节","question":"九头虫的原形是什么？","options":["九头蛇", "九头鸟", "九头虫", "九头龙"],"answer":2,"explanation":"正确答案：九头虫","chapter":"原著","type":"回目情节"},{"id":76,"difficulty":1,"category":"回目情节","question":"孙悟空和谁联手设计打败了九头虫？","options":["猪八戒", "杨戬", "哪吒", "托塔李天王"],"answer":1,"explanation":"正确答案：杨戬","chapter":"原著","type":"回目情节"},{"id":77,"difficulty":1,"category":"回目情节","question":"荆棘岭的木仙庵中，四个老者分别是什么树精？","options":["桃树、李树、杏树、梨树", "桧树、柏树、松树、竹树", "柳树、杨树、槐树、榆树", "枫树、梧桐树、银杏树、橡树"],"answer":1,"explanation":"正确答案：桧树、柏树、松树、竹树","chapter":"原著","type":"回目情节"},{"id":78,"difficulty":1,"category":"回目情节","question":"木仙庵中想要和唐僧成就姻缘的仙女叫什么？","options":["桃仙", "杏仙", "梨仙", "柳仙"],"answer":1,"explanation":"正确答案：杏仙","chapter":"原著","type":"回目情节"},{"id":79,"difficulty":1,"category":"回目情节","question":"小雷音寺中，黄眉怪假扮的是谁？","options":["观音菩萨", "如来佛祖", "玉皇大帝", "太上老君"],"answer":1,"explanation":"正确答案：如来佛祖","chapter":"原著","type":"回目情节"},{"id":80,"difficulty":1,"category":"回目情节","question":"黄眉怪的法宝之一金铙，最终是谁帮助悟空逃出来的？","options":["观音菩萨", "亢金龙", "哪吒", "太上老君"],"answer":1,"explanation":"正确答案：亢金龙","chapter":"原著","type":"回目情节"},{"id":81,"difficulty":2,"category":"细节理解","question":"孙悟空在斜月三星洞拜菩提祖师为师，'斜月三星'指的是什么字？","options":["月", "心", "斜", "三"],"answer":1,"explanation":"正确答案：心","chapter":"原著","type":"细节理解"},{"id":82,"difficulty":2,"category":"细节理解","question":"孙悟空在花果山自封'美猴王'后，众猴对他的称呼是什么？","options":["齐天大圣", "千岁大王", "弼马温", "孙行者"],"answer":1,"explanation":"正确答案：千岁大王","chapter":"原著","type":"细节理解"},{"id":83,"difficulty":2,"category":"细节理解","question":"孙悟空在第六回将自己变成土地庙时，将尾巴变作了什么？","options":["一根柱子", "一根旗杆", "一根烟囱", "一根树枝"],"answer":1,"explanation":"正确答案：一根旗杆","chapter":"原著","type":"细节理解"},{"id":84,"difficulty":2,"category":"细节理解","question":"在流沙河收服沙僧时，谁和卷帘大将大战？","options":["孙悟空", "猪八戒", "孙悟空和猪八戒", "哪吒"],"answer":1,"explanation":"正确答案：猪八戒","chapter":"原著","type":"细节理解"},{"id":85,"difficulty":2,"category":"细节理解","question":"在流沙河收服沙僧时，最终是谁从旁相助才制伏对手？","options":["观音菩萨", "木叉行者", "哪吒", "孙悟空"],"answer":1,"explanation":"正确答案：木叉行者","chapter":"原著","type":"细节理解"},{"id":86,"difficulty":2,"category":"细节理解","question":"《西游记》中，猪八戒的兵器是什么？","options":["如意金箍棒", "九齿钉耙", "降妖宝杖", "乾坤圈"],"answer":1,"explanation":"正确答案：九齿钉耙","chapter":"原著","type":"细节理解"},{"id":87,"difficulty":2,"category":"细节理解","question":"《西游记》中，沙僧的兵器是什么？","options":["如意金箍棒", "九齿钉耙", "降妖宝杖", "混铁棍"],"answer":2,"explanation":"正确答案：降妖宝杖","chapter":"原著","type":"细节理解"},{"id":88,"difficulty":2,"category":"细节理解","question":"红孩儿曾在火焰山修行了多少年？","options":["一百年", "二百年", "三百年", "五百年"],"answer":2,"explanation":"正确答案：三百年","chapter":"原著","type":"细节理解"},{"id":89,"difficulty":2,"category":"细节理解","question":"红孩儿炼成了什么神通？","options":["三昧真火", "三昧神风", "三昧真水", "三昧真雷"],"answer":0,"explanation":"正确答案：三昧真火","chapter":"原著","type":"细节理解"},{"id":90,"difficulty":2,"category":"细节理解","question":"红孩儿的乳名叫什么？","options":["圣婴", "红孩儿", "善财", "牛圣"],"answer":0,"explanation":"正确答案：圣婴","chapter":"原著","type":"细节理解"},{"id":91,"difficulty":2,"category":"细节理解","question":"红孩儿的号叫什么？","options":["圣婴大王", "红孩大王", "善财童子", "牛魔王之子"],"answer":0,"explanation":"正确答案：圣婴大王","chapter":"原著","type":"细节理解"},{"id":92,"difficulty":2,"category":"细节理解","question":"女儿国中，唐僧和八戒误饮了什么水而有孕？","options":["落胎泉水", "子母河水", "阴阳河水", "甘泉水"],"answer":1,"explanation":"正确答案：子母河水","chapter":"原著","type":"细节理解"},{"id":93,"difficulty":2,"category":"细节理解","question":"女儿国中，唐僧和八戒有孕后需要什么水来解胎？","options":["子母河水", "落胎泉水", "阴阳河水", "甘泉水"],"answer":1,"explanation":"正确答案：落胎泉水","chapter":"原著","type":"细节理解"},{"id":94,"difficulty":2,"category":"细节理解","question":"三调芭蕉扇中，铁扇公主给孙悟空的第一把扇子是什么？","options":["真扇子", "假扇子", "芭蕉叶", "铁扇"],"answer":1,"explanation":"正确答案：假扇子","chapter":"原著","type":"细节理解"},{"id":95,"difficulty":2,"category":"细节理解","question":"三调芭蕉扇中，孙悟空变成什么钻进了铁扇公主的肚子里？","options":["苍蝇", "小虫", "芥菜籽儿", "孙悟空"],"answer":1,"explanation":"正确答案：小虫","chapter":"原著","type":"细节理解"},{"id":96,"difficulty":2,"category":"细节理解","question":"《西游记》中，黄袍怪将唐僧变成老虎后，宝象国公主是谁？","options":["玉面公主", "百花羞", "杏仙", "铁扇公主"],"answer":1,"explanation":"正确答案：百花羞","chapter":"原著","type":"细节理解"},{"id":97,"difficulty":2,"category":"细节理解","question":"三打白骨精中，白骨精脊梁上刻着什么字？","options":["白骨夫人", "白骨精", "尸魔", "白骨仙子"],"answer":0,"explanation":"正确答案：白骨夫人","chapter":"原著","type":"细节理解"},{"id":98,"difficulty":2,"category":"细节理解","question":"孙悟空三打白骨精后，唐僧写了什么文书驱逐悟空？","options":["休书", "贬书", "绝交书", "逐徒书"],"answer":1,"explanation":"正确答案：贬书","chapter":"原著","type":"细节理解"},{"id":99,"difficulty":2,"category":"细节理解","question":"真假美猴王中，假悟空打伤了谁并抢走了行李关文？","options":["猪八戒", "唐僧", "沙僧", "白龙马"],"answer":1,"explanation":"正确答案：唐僧","chapter":"原著","type":"细节理解"},{"id":100,"difficulty":2,"category":"细节理解","question":"真假美猴王中，假悟空被谁用金钵盂罩住？","options":["观音菩萨", "如来佛祖", "玉皇大帝", "太上老君"],"answer":1,"explanation":"正确答案：如来佛祖","chapter":"原著","type":"细节理解"},{"id":101,"difficulty":2,"category":"细节理解","question":"黄眉怪的法宝金铙，最终被悟空用什么方法打破的？","options":["金箍棒", "自己变成芥菜籽儿从亢金龙角上打洞出来", "请来观音菩萨", "三昧真火"],"answer":1,"explanation":"正确答案：自己变成芥菜籽儿从亢金龙角上打洞出来","chapter":"原著","type":"细节理解"},{"id":102,"difficulty":2,"category":"细节理解","question":"黄眉怪还有一个法宝叫什么？","options":["金铙", "如意乾坤袋", "芭蕉扇", "紫金钵盂"],"answer":1,"explanation":"正确答案：如意乾坤袋","chapter":"原著","type":"细节理解"},{"id":103,"difficulty":2,"category":"细节理解","question":"孙悟空在小雷音寺被金铙盖住后，是谁上天请下二十八星宿和八仙？","options":["金头揭谛", "银头揭谛", "观音菩萨", "太上老君"],"answer":0,"explanation":"正确答案：金头揭谛","chapter":"原著","type":"细节理解"},{"id":104,"difficulty":2,"category":"细节理解","question":"第80回中，唐僧不听悟空劝告救下的妖女，后来被带到哪里？","options":["镇海禅林寺", "木仙庵", "小雷音寺", "金光寺"],"answer":0,"explanation":"正确答案：镇海禅林寺","chapter":"原著","type":"细节理解"},{"id":105,"difficulty":2,"category":"细节理解","question":"第80回中，妖女被绑在什么地方？","options":["黑松林", "荆棘岭", "火焰山", "流沙河"],"answer":0,"explanation":"正确答案：黑松林","chapter":"原著","type":"细节理解"},{"id":106,"difficulty":2,"category":"细节理解","question":"第81回中，女妖在哪个寺庙摄走了唐僧？","options":["镇海禅林寺", "金光寺", "小雷音寺", "木仙庵"],"answer":0,"explanation":"正确答案：镇海禅林寺","chapter":"原著","type":"细节理解"},{"id":107,"difficulty":2,"category":"细节理解","question":"第81回中，山神、土地告诉悟空，唐僧被摄到了哪里？","options":["陷空山无底洞", "黑松林", "火焰山", "积雷山"],"answer":0,"explanation":"正确答案：陷空山无底洞","chapter":"原著","type":"细节理解"},{"id":108,"difficulty":2,"category":"细节理解","question":"第82回中，孙悟空为救师父，变成什么钻入女妖腹中？","options":["苍蝇", "红桃", "小虫", "芥菜籽儿"],"answer":1,"explanation":"正确答案：红桃","chapter":"原著","type":"细节理解"},{"id":109,"difficulty":2,"category":"细节理解","question":"第82回中，孙悟空为救师父，先后变了几次才得以成功钻入女妖腹中？","options":["一次", "两次", "三次", "四次"],"answer":2,"explanation":"正确答案：三次","chapter":"原著","type":"细节理解"},{"id":110,"difficulty":2,"category":"细节理解","question":"第83回中，悟空发现女妖的供牌上写着谁的名字？","options":["如来佛祖", "李天王和哪吒三太子", "观音菩萨", "玉皇大帝"],"answer":1,"explanation":"正确答案：李天王和哪吒三太子","chapter":"原著","type":"细节理解"},{"id":111,"difficulty":2,"category":"细节理解","question":"第83回中，无底洞的女妖原形是什么？","options":["锦毛貂鼠", "白鼠", "狐狸", "蛇"],"answer":1,"explanation":"正确答案：白鼠","chapter":"原著","type":"细节理解"},{"id":112,"difficulty":2,"category":"细节理解","question":"无底洞的白鼠精曾偷了如来的什么宝物？","options":["舍利子", "香花宝烛", "紫金钵盂", "金箍棒"],"answer":1,"explanation":"正确答案：香花宝烛","chapter":"原著","type":"细节理解"},{"id":113,"difficulty":2,"category":"细节理解","question":"白鼠精被天王父子降伏后，拜谁为父兄？","options":["如来佛祖", "托塔李天王和哪吒", "观音菩萨", "太上老君"],"answer":1,"explanation":"正确答案：托塔李天王和哪吒","chapter":"原著","type":"细节理解"},{"id":114,"difficulty":2,"category":"细节理解","question":"白鼠精还改过什么名字？","options":["半截观音", "地涌夫人", "半截观音和地涌夫人", "白骨夫人"],"answer":2,"explanation":"正确答案：半截观音和地涌夫人","chapter":"原著","type":"细节理解"},{"id":115,"difficulty":2,"category":"细节理解","question":"第84回中，灭法国国王发愿要杀多少僧人？","options":["一千", "五千", "一万", "十万"],"answer":2,"explanation":"正确答案：一万","chapter":"原著","type":"细节理解"},{"id":116,"difficulty":2,"category":"细节理解","question":"第84回中，孙悟空在灭法国施了什么法术？","options":["把国王变成老虎", "把国王后妃文武官员剃成秃头", "把宫殿烧毁", "把国王杀死"],"answer":1,"explanation":"正确答案：把国王后妃文武官员剃成秃头","chapter":"原著","type":"细节理解"},{"id":117,"difficulty":2,"category":"细节理解","question":"灭法国后来在孙悟空建议下改为什么国？","options":["钦法国", "安法国", "兴法国", "平法国"],"answer":0,"explanation":"正确答案：钦法国","chapter":"原著","type":"细节理解"},{"id":118,"difficulty":2,"category":"细节理解","question":"第85回中，妖精使用的'分瓣梅花计'是为了什么？","options":["分散孙悟空注意力", "吃唐僧肉", "抢走芭蕉扇", "占领城池"],"answer":1,"explanation":"正确答案：吃唐僧肉","chapter":"原著","type":"细节理解"},{"id":119,"difficulty":2,"category":"细节理解","question":"第85回中，'分瓣梅花计'的具体内容是什么？","options":["三个妖怪变成大王模样，各战唐僧三徒弟，大王捉唐僧", "四个妖怪围攻孙悟空", "用梅花阵困住师徒", "变成梅花分散注意力"],"answer":0,"explanation":"正确答案：三个妖怪变成大王模样，各战唐僧三徒弟，大王捉唐僧","chapter":"原著","type":"细节理解"},{"id":120,"difficulty":2,"category":"细节理解","question":"第61回中，玉面公主是谁的妻子？","options":["孙悟空", "牛魔王", "猪八戒", "唐僧"],"answer":1,"explanation":"正确答案：牛魔王","chapter":"原著","type":"细节理解"},{"id":121,"difficulty":2,"category":"细节理解","question":"第61回中，哪吒用什么挂在牛角上焚烧牛魔王？","options":["乾坤圈", "风火轮", "混天绫", "火尖枪"],"answer":1,"explanation":"正确答案：风火轮","chapter":"原著","type":"细节理解"},{"id":122,"difficulty":2,"category":"细节理解","question":"第62回中，唐僧夜晚在金光寺做什么？","options":["拜佛", "扫塔", "讲经", "念经"],"answer":1,"explanation":"正确答案：扫塔","chapter":"原著","type":"细节理解"},{"id":123,"difficulty":2,"category":"细节理解","question":"第62回中，悟空在金光寺捉住了几个小妖？","options":["一个", "两个", "三个", "四个"],"answer":1,"explanation":"正确答案：两个","chapter":"原著","type":"细节理解"},{"id":124,"difficulty":2,"category":"细节理解","question":"第63回中，悟空变身成什么到龙宫大闹？","options":["虾", "蟹", "鱼", "龙"],"answer":1,"explanation":"正确答案：蟹","chapter":"原著","type":"细节理解"},{"id":125,"difficulty":2,"category":"细节理解","question":"第63回中，悟空和八戒与九头蛇王相斗，蛇王斗不过变回原形，他原来是什么？","options":["九头蛇", "九头虫", "九头龙", "九头鸟"],"answer":1,"explanation":"正确答案：九头虫","chapter":"原著","type":"细节理解"},{"id":126,"difficulty":2,"category":"细节理解","question":"第64回中，荆棘岭十分难行，是谁用钉钯开路？","options":["孙悟空", "猪八戒", "沙僧", "唐僧"],"answer":1,"explanation":"正确答案：猪八戒","chapter":"原著","type":"细节理解"},{"id":127,"difficulty":2,"category":"细节理解","question":"第64回中，十八公要把谁和唐僧成就姻缘？","options":["桃仙", "杏仙", "梨仙", "柳仙"],"answer":1,"explanation":"正确答案：杏仙","chapter":"原著","type":"细节理解"},{"id":128,"difficulty":2,"category":"细节理解","question":"第64回中，四个老者和杏仙最后怎么了？","options":["被悟空打死", "被八戒用钉钯筑倒", "逃走了", "被火烧死"],"answer":1,"explanation":"正确答案：被八戒用钉钯筑倒","chapter":"原著","type":"细节理解"},{"id":129,"difficulty":2,"category":"细节理解","question":"第65回中，黄眉怪利用唐僧什么心理虚摆小雷音寺？","options":["求佛心切", "贪吃", "贪睡", "胆小"],"answer":0,"explanation":"正确答案：求佛心切","chapter":"原著","type":"细节理解"},{"id":130,"difficulty":2,"category":"细节理解","question":"第65回中，悟空被金铙盖下后，是谁用独角挤进金铙？","options":["亢金龙", "哪吒", "二十八星宿", "八仙"],"answer":0,"explanation":"正确答案：亢金龙","chapter":"原著","type":"细节理解"},{"id":131,"difficulty":2,"category":"细节理解","question":"第65回中，悟空将亢金龙的角打洞变成什么才被带出来？","options":["苍蝇", "芥菜籽儿", "红桃", "小虫"],"answer":1,"explanation":"正确答案：芥菜籽儿","chapter":"原著","type":"细节理解"},{"id":132,"difficulty":2,"category":"细节理解","question":"第65回中，悟空逃出金铙后，盗走了黄眉怪的什么法宝？","options":["金铙", "如意乾坤袋", "芭蕉扇", "紫金钵盂"],"answer":1,"explanation":"正确答案：如意乾坤袋","chapter":"原著","type":"细节理解"},{"id":133,"difficulty":2,"category":"细节理解","question":"第65回中，悟空回头挑担时因为什么特征被妖精发现？","options":["个子矮", "个子高", "声音大", "走路重"],"answer":0,"explanation":"正确答案：个子矮","chapter":"原著","type":"细节理解"},{"id":134,"difficulty":2,"category":"细节理解","question":"第65回中，悟空欲求谁降妖？","options":["观音菩萨", "北方真武大帝荡魔真君", "如来佛祖", "太上老君"],"answer":1,"explanation":"正确答案：北方真武大帝荡魔真君","chapter":"原著","type":"细节理解"},{"id":135,"difficulty":2,"category":"细节理解","question":"孙悟空在花果山自封'齐天大圣'后，天庭派谁去捉拿他？","options":["哪吒", "托塔李天王", "二郎神", "巨灵神和托塔李天王"],"answer":3,"explanation":"正确答案：巨灵神和托塔李天王","chapter":"原著","type":"细节理解"},{"id":136,"difficulty":2,"category":"细节理解","question":"孙悟空大闹天宫时，与谁斗法变化？","options":["哪吒", "二郎神", "如来佛祖", "太上老君"],"answer":1,"explanation":"正确答案：二郎神","chapter":"原著","type":"细节理解"},{"id":137,"difficulty":2,"category":"细节理解","question":"孙悟空大闹蟠桃会后，偷吃了太上老君的什么？","options":["仙桃", "仙丹", "人参果", "唐僧肉"],"answer":1,"explanation":"正确答案：仙丹","chapter":"原著","type":"细节理解"},{"id":138,"difficulty":2,"category":"细节理解","question":"孙悟空被压五行山后，是谁给他送桃吃？","options":["唐僧", "观音菩萨", "土地", "牧童"],"answer":3,"explanation":"正确答案：牧童","chapter":"原著","type":"细节理解"},{"id":139,"difficulty":2,"category":"细节理解","question":"唐僧取经路上，白龙马是在哪里被收服的？","options":["五行山", "鹰愁涧", "高老庄", "流沙河"],"answer":1,"explanation":"正确答案：鹰愁涧","chapter":"原著","type":"细节理解"},{"id":140,"difficulty":2,"category":"细节理解","question":"《西游记》中，孙悟空的金箍棒重多少斤？","options":["一万三千五百斤", "七千二百斤", "五千斤", "十万八千斤"],"answer":0,"explanation":"正确答案：一万三千五百斤","chapter":"原著","type":"细节理解"},{"id":141,"difficulty":2,"category":"细节理解","question":"《西游记》中，孙悟空一个筋斗能翻多少里？","options":["一千八百里", "一万八千里", "十万八千里", "一百万里"],"answer":2,"explanation":"正确答案：十万八千里","chapter":"原著","type":"细节理解"},{"id":142,"difficulty":2,"category":"细节理解","question":"《西游记》中，猪八戒的九齿钉耙原名叫什么？","options":["上宝沁金耙", "如意金箍棒", "降妖宝杖", "混铁棍"],"answer":0,"explanation":"正确答案：上宝沁金耙","chapter":"原著","type":"细节理解"},{"id":143,"difficulty":2,"category":"细节理解","question":"《西游记》中，唐僧前世是什么身份？","options":["金蝉子", "金蝉长老", "金蝉长老转世", "如来弟子"],"answer":2,"explanation":"正确答案：金蝉长老转世","chapter":"原著","type":"细节理解"},{"id":144,"difficulty":2,"category":"细节理解","question":"四圣试禅心中，黎山老母扮成了什么身份？","options":["母亲", "女儿", "姐姐", "婆婆"],"answer":0,"explanation":"正确答案：母亲","chapter":"原著","type":"细节理解"},{"id":145,"difficulty":2,"category":"细节理解","question":"大闹五庄观中，镇元大仙被称为什么？","options":["地仙之祖", "天仙之祖", "人仙之祖", "鬼仙之祖"],"answer":0,"explanation":"正确答案：地仙之祖","chapter":"原著","type":"细节理解"},{"id":146,"difficulty":2,"category":"细节理解","question":"三打白骨精中，孙悟空打死白骨精后，八戒在旁边说了什么？","options":["称赞悟空", "说悟空故意变化掩师父眼目", "说妖怪该死", "说唐僧错了"],"answer":1,"explanation":"正确答案：说悟空故意变化掩师父眼目","chapter":"原著","type":"细节理解"},{"id":147,"difficulty":2,"category":"细节理解","question":"双战黄袍怪中，黄袍怪住在什么地方？","options":["黑松林", "碗子山波月洞", "火焰山", "流沙河"],"answer":1,"explanation":"正确答案：碗子山波月洞","chapter":"原著","type":"细节理解"},{"id":148,"difficulty":2,"category":"细节理解","question":"双战黄袍怪中，百花羞公主偷偷放走了谁？","options":["孙悟空", "唐僧", "猪八戒", "沙僧"],"answer":1,"explanation":"正确答案：唐僧","chapter":"原著","type":"细节理解"},{"id":149,"difficulty":2,"category":"细节理解","question":"大战红孩儿中，孙悟空找龙王借水，结果怎样？","options":["灭了火", "反被烧伤", "救了唐僧", "打败了红孩儿"],"answer":1,"explanation":"正确答案：反被烧伤","chapter":"原著","type":"细节理解"},{"id":150,"difficulty":2,"category":"细节理解","question":"三调芭蕉扇中，孙悟空一共调了几次芭蕉扇？","options":["一次", "两次", "三次", "四次"],"answer":2,"explanation":"正确答案：三次","chapter":"原著","type":"细节理解"},{"id":151,"difficulty":2,"category":"细节理解","question":"真假美猴王中，假悟空为什么要打死唐僧？","options":["想吃唐僧肉", "要自己上西天取经", "怨恨唐僧", "被妖怪指使"],"answer":1,"explanation":"正确答案：要自己上西天取经","chapter":"原著","type":"细节理解"},{"id":152,"difficulty":2,"category":"细节理解","question":"真假美猴王中，假悟空被揭穿后，被谁一棒打死？","options":["唐僧", "观音菩萨", "孙悟空", "如来佛祖"],"answer":2,"explanation":"正确答案：孙悟空","chapter":"原著","type":"细节理解"},{"id":153,"difficulty":2,"category":"细节理解","question":"《西游记》中，孙悟空在天庭第一次管理的官职是管什么的？","options":["蟠桃园", "御马监", "太上老君炼丹房", "东海龙宫"],"answer":1,"explanation":"正确答案：御马监","chapter":"原著","type":"细节理解"},{"id":154,"difficulty":2,"category":"细节理解","question":"《西游记》中，孙悟空第二次被招安管理的是什么？","options":["御马监", "蟠桃园", "兜率宫", "通明殿"],"answer":1,"explanation":"正确答案：蟠桃园","chapter":"原著","type":"细节理解"},{"id":155,"difficulty":2,"category":"细节理解","question":"《西游记》中，唐僧师徒西天取经走了多少年？","options":["十年", "十四年", "二十年", "八年"],"answer":1,"explanation":"正确答案：十四年","chapter":"原著","type":"细节理解"},{"id":156,"difficulty":2,"category":"细节理解","question":"《西游记》中，唐僧师徒西天取经走了多少里路？","options":["十万八千里", "十万八百里", "五万四千里", "百万里"],"answer":0,"explanation":"正确答案：十万八千里","chapter":"原著","type":"细节理解"},{"id":157,"difficulty":2,"category":"细节理解","question":"《西游记》中，孙悟空被太上老君炼丹炉煅烧后，得了什么后遗症？","options":["怕水", "怕火", "怕风", "怕烟"],"answer":3,"explanation":"正确答案：怕烟","chapter":"原著","type":"细节理解"},{"id":158,"difficulty":2,"category":"细节理解","question":"《西游记》中，孙悟空的紧箍咒是谁传授给唐僧的？","options":["如来佛祖", "观音菩萨", "菩提祖师", "太上老君"],"answer":1,"explanation":"正确答案：观音菩萨","chapter":"原著","type":"细节理解"},{"id":159,"difficulty":2,"category":"细节理解","question":"《西游记》中，猪八戒在高老庄娶的妻子叫什么？","options":["高翠兰", "高玉兰", "高金莲", "高银兰"],"answer":0,"explanation":"正确答案：高翠兰","chapter":"原著","type":"细节理解"},{"id":160,"difficulty":2,"category":"细节理解","question":"《西游记》中，沙僧在流沙河的项下挂着几个骷髅？","options":["七个", "八个", "九个", "十个"],"answer":2,"explanation":"正确答案：九个","chapter":"原著","type":"细节理解"},{"id":161,"difficulty":3,"category":"主题分析","question":"《西游记》中，孙悟空'大闹天宫'的情节主要体现了他怎样的性格特点？","options":["胆小怕事", "桀骜不驯、不畏强权、敢于反抗", "温顺听话", "懦弱无能"],"answer":1,"explanation":"正确答案：桀骜不驯、不畏强权、敢于反抗","chapter":"原著","type":"主题分析"},{"id":162,"difficulty":3,"category":"主题分析","question":"《西游记》中，孙悟空的人物形象不包括以下哪一项？","options":["桀骜不驯", "敢作敢当", "勇敢机智", "阴险狡诈"],"answer":3,"explanation":"正确答案：阴险狡诈","chapter":"原著","type":"主题分析"},{"id":163,"difficulty":3,"category":"主题分析","question":"《西游记》中，猪八戒的人物形象体现了什么？","options":["完美无缺", "人类普遍存在的欲望和弱点", "完全勇敢", "毫无缺点"],"answer":1,"explanation":"正确答案：人类普遍存在的欲望和弱点","chapter":"原著","type":"主题分析"},{"id":164,"difficulty":3,"category":"主题分析","question":"《西游记》中，猪八戒的形象比孙悟空更具有什么特点？","options":["神通广大", "日常生活中人物的真实性", "完全正义", "毫无畏惧"],"answer":1,"explanation":"正确答案：日常生活中人物的真实性","chapter":"原著","type":"主题分析"},{"id":165,"difficulty":3,"category":"主题分析","question":"《西游记》中，沙僧在选段中表现出什么性格特点？","options":["贪恋美色", "忠诚坚定、有始有终", "好吃懒做", "搬弄是非"],"answer":1,"explanation":"正确答案：忠诚坚定、有始有终","chapter":"原著","type":"主题分析"},{"id":166,"difficulty":3,"category":"主题分析","question":"《西游记》中，唐僧的人物形象主要特点是？","options":["嫉恶如仇", "肉眼凡胎、不辨是非", "勇敢机智", "桀骜不驯"],"answer":1,"explanation":"正确答案：肉眼凡胎、不辨是非","chapter":"原著","type":"主题分析"},{"id":167,"difficulty":3,"category":"主题分析","question":"《西游记》中，三打白骨精的情节主要表现了唐僧什么性格？","options":["勇敢果断", "听信谗言、是非不分", "机智聪明", "嫉恶如仇"],"answer":1,"explanation":"正确答案：听信谗言、是非不分","chapter":"原著","type":"主题分析"},{"id":168,"difficulty":3,"category":"主题分析","question":"《西游记》中，三打白骨精的情节主要表现了猪八戒什么性格？","options":["忠诚可靠", "搬弄是非、煽风点火", "勇敢机智", "坚定执着"],"answer":1,"explanation":"正确答案：搬弄是非、煽风点火","chapter":"原著","type":"主题分析"},{"id":169,"difficulty":3,"category":"主题分析","question":"《西游记》中，孙悟空'三打白骨精'体现了他什么品质？","options":["嫉恶如仇、机智勇敢", "懦弱胆小", "搬弄是非", "贪恋美色"],"answer":0,"explanation":"正确答案：嫉恶如仇、机智勇敢","chapter":"原著","type":"主题分析"},{"id":170,"difficulty":3,"category":"主题分析","question":"《西游记》中，大闹五庄观中孙悟空的形象特点是？","options":["争强好胜、喜欢炫耀", "胆小怕事", "温顺听话", "懦弱无能"],"answer":0,"explanation":"正确答案：争强好胜、喜欢炫耀","chapter":"原著","type":"主题分析"},{"id":171,"difficulty":3,"category":"主题分析","question":"《西游记》中，四圣试禅心中猪八戒的形象特点是？","options":["贪恋美色", "意志坚定", "勇敢机智", "忠诚可靠"],"answer":0,"explanation":"正确答案：贪恋美色","chapter":"原著","type":"主题分析"},{"id":172,"difficulty":3,"category":"主题分析","question":"《西游记》中，第31回猪八戒用激将法请孙悟空回山，体现了猪八戒什么特点？","options":["粗鲁无礼", "机智灵活、懂得策略", "胆小怕事", "愚笨无能"],"answer":1,"explanation":"正确答案：机智灵活、懂得策略","chapter":"原著","type":"主题分析"},{"id":173,"difficulty":3,"category":"主题分析","question":"《西游记》中，第31回孙悟空被八戒激将后决定出山，体现了他什么性格？","options":["自尊心强、好胜", "懦弱胆小", "温顺听话", "毫无主见"],"answer":0,"explanation":"正确答案：自尊心强、好胜","chapter":"原著","type":"主题分析"},{"id":174,"difficulty":3,"category":"主题分析","question":"《西游记》中，孙悟空和唐僧之间的关系变化过程反映了什么主题？","options":["师徒关系从冲突到信任的成长", "永远的敌对", "完全服从", "毫无变化"],"answer":0,"explanation":"正确答案：师徒关系从冲突到信任的成长","chapter":"原著","type":"主题分析"},{"id":175,"difficulty":3,"category":"主题分析","question":"《西游记》中，取经团队最终成功的关键因素是什么？","options":["只靠孙悟空", "团队合作、坚持不懈", "运气好", "妖怪都让路"],"answer":1,"explanation":"正确答案：团队合作、坚持不懈","chapter":"原著","type":"主题分析"},{"id":176,"difficulty":3,"category":"主题分析","question":"《西游记》中，'大闹天宫'情节在整部小说中有什么象征意义？","options":["表现了反抗权威的精神", "只是打闹好玩", "没有象征意义", "表现孙悟空的愚蠢"],"answer":0,"explanation":"正确答案：表现了反抗权威的精神","chapter":"原著","type":"主题分析"},{"id":177,"difficulty":3,"category":"主题分析","question":"《西游记》中，孙悟空从'大闹天宫'到'护送取经'的转变体现了什么？","options":["从叛逆到成熟责任感的成长", "变懦弱了", "被压迫了", "没有变化"],"answer":0,"explanation":"正确答案：从叛逆到成熟责任感的成长","chapter":"原著","type":"主题分析"},{"id":178,"difficulty":3,"category":"主题分析","question":"《西游记》中，唐僧师徒历经八十一难最终取得真经，这体现了什么主题？","options":["成功需要历经磨难", "成功很容易", "不需要努力", "只靠运气"],"answer":0,"explanation":"正确答案：成功需要历经磨难","chapter":"原著","type":"主题分析"},{"id":179,"difficulty":3,"category":"主题分析","question":"《西游记》中，孙悟空'身回水帘洞，心逐取经僧'表现了他什么心理？","options":["对师父的牵挂和忠诚", "想回花果山", "不想取经", "怨恨师父"],"answer":0,"explanation":"正确答案：对师父的牵挂和忠诚","chapter":"原著","type":"主题分析"},{"id":180,"difficulty":3,"category":"主题分析","question":"《西游记》中，猪八戒虽然有很多缺点，但他在取经路上有什么作用？","options":["完全没有作用", "增添喜剧色彩、体现人性的真实", "总是添乱", "阻碍取经"],"answer":1,"explanation":"正确答案：增添喜剧色彩、体现人性的真实","chapter":"原著","type":"主题分析"},{"id":181,"difficulty":3,"category":"主题分析","question":"《西游记》中，白龙马在取经团队中虽然话少，但他的存在象征着什么？","options":["默默无闻的坚守", "毫无作用", "懒惰", "叛逆"],"answer":0,"explanation":"正确答案：默默无闻的坚守","chapter":"原著","type":"主题分析"},{"id":182,"difficulty":3,"category":"主题分析","question":"《西游记》中，'真假美猴王'情节中，六耳猕猴象征了孙悟空的什么？","options":["内心的矛盾和黑暗面", "完全善良", "没有象征", "只是一个妖怪"],"answer":0,"explanation":"正确答案：内心的矛盾和黑暗面","chapter":"原著","type":"主题分析"},{"id":183,"difficulty":3,"category":"主题分析","question":"《西游记》中，'三调芭蕉扇'中孙悟空的智谋体现了他什么能力？","options":["只会蛮力", "善于应变、机智灵活", "胆小怕事", "毫无能力"],"answer":1,"explanation":"正确答案：善于应变、机智灵活","chapter":"原著","type":"主题分析"},{"id":184,"difficulty":3,"category":"主题分析","question":"《西游记》中，灭法国国王杀僧人的情节，孙悟空用剃头的方式解决，这体现了什么？","options":["以智取胜、慈悲为怀", "残忍好杀", "毫无办法", "懦弱退让"],"answer":0,"explanation":"正确答案：以智取胜、慈悲为怀","chapter":"原著","type":"主题分析"},{"id":185,"difficulty":3,"category":"主题分析","question":"《西游记》中，木仙庵谈诗的情节中，唐僧坚定拒绝杏仙，体现了他什么品质？","options":["贪恋美色", "取经意志坚定、不为色诱", "胆小怕事", "毫无情趣"],"answer":1,"explanation":"正确答案：取经意志坚定、不为色诱","chapter":"原著","type":"主题分析"},{"id":186,"difficulty":3,"category":"主题分析","question":"《西游记》中，镇元大仙与孙悟空结为兄弟，体现了镇元大仙什么性格？","options":["傲慢无礼", "豁达大度、欣赏英雄", "胆小怕事", "阴险狡诈"],"answer":1,"explanation":"正确答案：豁达大度、欣赏英雄","chapter":"原著","type":"主题分析"},{"id":187,"difficulty":3,"category":"主题分析","question":"《西游记》中，第84回悟空将灭法国国王和官员剃成光头，这是一种什么方式的反抗？","options":["暴力杀戮", "智慧幽默的非暴力反抗", "完全服从", "毫无作用"],"answer":1,"explanation":"正确答案：智慧幽默的非暴力反抗","chapter":"原著","type":"主题分析"},{"id":188,"difficulty":3,"category":"主题分析","question":"《西游记》中，取经路上妖怪大多想吃唐僧肉，这象征着什么？","options":["唐僧肉真的好吃", "取经路上的欲望和诱惑", "妖怪都饿了", "没有象征意义"],"answer":1,"explanation":"正确答案：取经路上的欲望和诱惑","chapter":"原著","type":"主题分析"},{"id":189,"difficulty":3,"category":"主题分析","question":"《西游记》中，孙悟空的火眼金睛象征着什么？","options":["能看穿一切假象的洞察力", "只是看得远", "没有象征意义", "怕烟"],"answer":0,"explanation":"正确答案：能看穿一切假象的洞察力","chapter":"原著","type":"主题分析"},{"id":190,"difficulty":3,"category":"主题分析","question":"《西游记》中，猪八戒好吃贪睡、爱占小便宜的形象，为什么深受读者喜爱？","options":["因为他完美", "因为真实可爱、贴近人性", "因为他聪明", "因为他勇敢"],"answer":1,"explanation":"正确答案：因为真实可爱、贴近人性","chapter":"原著","type":"主题分析"},{"id":191,"difficulty":3,"category":"主题分析","question":"《西游记》中，'四圣试禅心'的情节设置有什么深意？","options":["考验取经团队的意志坚定性", "只是好玩", "没有深意", "为了惩罚八戒"],"answer":0,"explanation":"正确答案：考验取经团队的意志坚定性","chapter":"原著","type":"主题分析"},{"id":192,"difficulty":3,"category":"主题分析","question":"《西游记》中，唐僧多次误会孙悟空，最终师徒关系却越来越好，这说明什么？","options":["信任需要时间和磨合", "师父永远是对的", "徒弟永远是对的", "没有变化"],"answer":0,"explanation":"正确答案：信任需要时间和磨合","chapter":"原著","type":"主题分析"},{"id":193,"difficulty":3,"category":"主题分析","question":"《西游记》中，沙僧在取经团队中扮演了什么角色？","options":["挑担子和调和矛盾的老实人", "领导者", "决策者", "叛逆者"],"answer":0,"explanation":"正确答案：挑担子和调和矛盾的老实人","chapter":"原著","type":"主题分析"},{"id":194,"difficulty":3,"category":"主题分析","question":"《西游记》中，第81回唐僧因为踩了一粒米而有病，心生什么念头？","options":["继续取经", "修书送太宗皇帝，请另遣他人取经", "放弃一切", "独自前行"],"answer":1,"explanation":"正确答案：修书送太宗皇帝，请另遣他人取经","chapter":"原著","type":"主题分析"},{"id":195,"difficulty":3,"category":"主题分析","question":"《西游记》中，白龙马变成宫女刺杀黄袍怪失败，体现了他的什么精神？","options":["忠诚勇敢、不畏强敌", "胆小怕事", "毫无作用", "懦弱无能"],"answer":0,"explanation":"正确答案：忠诚勇敢、不畏强敌","chapter":"原著","type":"主题分析"},{"id":196,"difficulty":3,"category":"主题分析","question":"《西游记》中，第82回悟空变成红桃让妖怪吃下，这种智谋体现了什么？","options":["以柔克刚、灵活应变", "只会蛮力", "胆小怕事", "毫无能力"],"answer":0,"explanation":"正确答案：以柔克刚、灵活应变","chapter":"原著","type":"主题分析"},{"id":197,"difficulty":3,"category":"主题分析","question":"《西游记》中，无底洞白鼠精拜李天王为父，这一情节暗示了什么？","options":["即使是妖魔也有感恩之心", "妖魔都是坏的", "李天王软弱", "没有暗示"],"answer":0,"explanation":"正确答案：即使是妖魔也有感恩之心","chapter":"原著","type":"主题分析"},{"id":198,"difficulty":3,"category":"主题分析","question":"《西游记》中，黄眉怪假设小雷音寺，利用了唐僧的什么心理弱点？","options":["求佛心切、盲目崇拜", "贪吃", "贪睡", "胆小"],"answer":0,"explanation":"正确答案：求佛心切、盲目崇拜","chapter":"原著","type":"主题分析"},{"id":199,"difficulty":3,"category":"主题分析","question":"《西游记》中，第80回悟空劝唐僧不要救妖女，唐僧不听，这反映了什么？","options":["唐僧慈悲有时不分善恶", "悟空残忍", "八戒聪明", "沙僧勇敢"],"answer":0,"explanation":"正确答案：唐僧慈悲有时不分善恶","chapter":"原著","type":"主题分析"},{"id":200,"difficulty":3,"category":"主题分析","question":"《西游记》作为一部神魔小说，其核心思想是什么？","options":["表现人的成长、战胜自我、取得真经", "宣扬暴力", "歌颂妖怪", "反对佛教"],"answer":0,"explanation":"正确答案：表现人的成长、战胜自我、取得真经","chapter":"原著","type":"主题分析"}];
+<script>var QUESTIONS = [{"id":1,"difficulty":1,"category":"文学常识","question":"《西游记》的作者是谁？","options":["罗贯中","吴承恩","施耐庵","曹雪芹"],"answer":1,"explanation":"正确答案：吴承恩","chapter":"原著","type":"文学常识"},{"id":2,"difficulty":1,"category":"文学常识","question":"《西游记》属于什么体裁的小说？","options":["长篇章回体神魔小说","短篇小说集","散文体传记","话本小说"],"answer":0,"explanation":"正确答案：长篇章回体神魔小说","chapter":"原著","type":"文学常识"},{"id":3,"difficulty":1,"category":"文学常识","question":"《西游记》主要讲述了什么故事？","options":["梁山好汉聚义","唐僧师徒西天取经","三国争霸","贾宝玉与林黛玉的爱情"],"answer":1,"explanation":"正确答案：唐僧师徒西天取经","chapter":"原著","type":"文学常识"},{"id":4,"difficulty":1,"category":"人物识别","question":"孙悟空的第一个师父是谁？","options":["唐僧","观音菩萨","菩提祖师","如来佛祖"],"answer":2,"explanation":"正确答案：菩提祖师","chapter":"原著","type":"人物识别"},{"id":5,"difficulty":1,"category":"人物识别","question":"唐僧的原型人物是谁？","options":["玄奘","鉴真","法显","慧能"],"answer":0,"explanation":"正确答案：玄奘","chapter":"原著","type":"人物识别"},{"id":6,"difficulty":1,"category":"文学常识","question":"《西游记》中，唐僧前往西天取经，途中一共经历了多少难？","options":["七十二难","八十一难","九十九难","一百零八难"],"answer":1,"explanation":"正确答案：八十一难","chapter":"原著","type":"文学常识"},{"id":7,"difficulty":1,"category":"人物识别","question":"猪八戒原是天庭的什么职位？","options":["卷帘大将","天蓬元帅","托塔天王","哪吒太子"],"answer":1,"explanation":"正确答案：天蓬元帅","chapter":"原著","type":"人物识别"},{"id":8,"difficulty":1,"category":"人物识别","question":"沙僧原是天庭的什么职位？","options":["天蓬元帅","卷帘大将","弼马温","增长天王"],"answer":1,"explanation":"正确答案：卷帘大将","chapter":"原著","type":"人物识别"},{"id":9,"difficulty":1,"category":"回目情节","question":"孙悟空的兵器叫什么名字？","options":["九齿钉耙","如意金箍棒","降妖宝杖","乾坤圈"],"answer":1,"explanation":"正确答案：如意金箍棒","chapter":"原著","type":"回目情节"},{"id":10,"difficulty":1,"category":"回目情节","question":"孙悟空的兵器原本是什么人治水时留下的？","options":["大禹","李冰","姜子牙","神农"],"answer":0,"explanation":"正确答案：大禹","chapter":"原著","type":"回目情节"},{"id":11,"difficulty":1,"category":"回目情节","question":"孙悟空大闹天宫后，被如来佛祖压在了哪里？","options":["太行山","五行山","昆仑山","华山"],"answer":1,"explanation":"正确答案：五行山","chapter":"原著","type":"回目情节"},{"id":12,"difficulty":1,"category":"文学常识","question":"《西游记》中，孙悟空被封为齐天大圣是在什么事件之后？","options":["大闹天宫","保护唐僧取经","三打白骨精","真假美猴王"],"answer":0,"explanation":"正确答案：大闹天宫","chapter":"原著","type":"文学常识"},{"id":13,"difficulty":1,"category":"人物识别","question":"《西游记》中，孙悟空被压五行山多少年？","options":["五百年","一百年","一千年","三百年"],"answer":0,"explanation":"正确答案：五百年","chapter":"原著","type":"人物识别"},{"id":14,"difficulty":1,"category":"回目情节","question":"《西游记》中，白骨精为了吃唐僧肉，先后变化成了哪三个人？","options":["村姑、老妇、老翁","书生、小姐、老翁","道士、和尚、老妇","村姑、书生、老翁"],"answer":0,"explanation":"正确答案：村姑、老妇、老翁","chapter":"原著","type":"回目情节"},{"id":15,"difficulty":1,"category":"回目情节","question":"《西游记》中，孙悟空三打白骨精后，唐僧为什么赶走孙悟空？","options":["孙悟空打死了三个好人","孙悟空不尊敬师父","孙悟空偷吃人参果","孙悟空大闹天宫"],"answer":0,"explanation":"正确答案：孙悟空打死了三个好人（白骨精变化的）","chapter":"原著","type":"回目情节"},{"id":16,"difficulty":1,"category":"回目情节","question":"《西游记》中，火焰山是怎么形成的？","options":["孙悟空踢翻太上老君的炼丹炉","自然火山","铁扇公主的扇子","红孩儿的法术"],"answer":0,"explanation":"正确答案：孙悟空踢翻太上老君的炼丹炉，炉砖掉落凡间形成","chapter":"原著","type":"回目情节"},{"id":17,"difficulty":1,"category":"回目情节","question":"《西游记》中，红孩儿是牛魔王和谁的的孩子？","options":["铁扇公主","玉面狐狸","白骨精","嫦娥"],"answer":0,"explanation":"正确答案：铁扇公主","chapter":"原著","type":"回目情节"},{"id":18,"difficulty":1,"category":"回目情节","question":"《西游记》中，孙悟空借芭蕉扇是为了过哪一难？","options":["火焰山","通天河","流沙河","女儿国"],"answer":0,"explanation":"正确答案：火焰山","chapter":"原著","type":"回目情节"},{"id":19,"difficulty":1,"category":"文学常识","question":"《西游记》中，'九九八十一难'中的'九九'指的是什么？","options":["九乘以九","八十一","道教数字","佛教数字"],"answer":0,"explanation":"正确答案：九乘以九等于八十一，象征圆满","chapter":"原著","type":"文学常识"},{"id":20,"difficulty":1,"category":"回目情节","question":"《西游记》中，孙悟空的'七十二变'是从哪里学来的？","options":["菩提祖师","如来佛祖","观音菩萨","太上老君"],"answer":0,"explanation":"正确答案：菩提祖师","chapter":"原著","type":"回目情节"},{"id":21,"difficulty":2,"category":"回目情节","question":"《西游记》中，孙悟空在取经路上第一次被唐僧赶走是在哪一回？","options":["第十四回","第二十七回","第三十一回","第五十七回"],"answer":1,"explanation":"正确答案：第二十七回（三打白骨精）","chapter":"原著","type":"回目情节"},{"id":22,"difficulty":2,"category":"回目情节","question":"《西游记》中，真假美猴王的故事发生在哪一回？","options":["第五十六回至第五十八回","第四十六回至第四十八回","第六十六回至第六十八回","第七十六回至第七十八回"],"answer":0,"explanation":"正确答案：第五十六回至第五十八回","chapter":"原著","type":"回目情节"},{"id":23,"difficulty":2,"category":"人物识别","question":"《西游记》中，唐僧在取经路上收的最后一个徒弟是谁？","options":["孙悟空","猪八戒","沙僧","白龙马"],"answer":2,"explanation":"正确答案：沙僧（在流沙河收的）","chapter":"原著","type":"人物识别"},{"id":24,"difficulty":2,"category":"回目情节","question":"《西游记》中，孙悟空在花果山称王时，自封为什么？","options":["齐天大圣","美猴王","弼马温","斗战胜佛"],"answer":1,"explanation":"正确答案：美猴王","chapter":"原著","type":"回目情节"},{"id":25,"difficulty":2,"category":"回目情节","question":"《西游记》中，猪八戒在高老庄娶的是谁？","options":["高翠兰","高玉兰","高香兰","高秀兰"],"answer":0,"explanation":"正确答案：高翠兰","chapter":"原著","type":"回目情节"},{"id":201,"difficulty":1,"category":"文学常识","question":"《西游记》全书共多少回？","options":["一百一十回","一百回","八十一回","九十九回"],"answer":1,"explanation":"正确答案：一百回","chapter":"原著","type":"文学常识"},{"id":202,"difficulty":1,"category":"文学常识","question":"孙悟空的老家花果山属于哪个州？","options":["东胜神州","南赡部洲","西牛贺州","北俱芦洲"],"answer":0,"explanation":"正确答案：东胜神州","chapter":"原著","type":"文学常识"},{"id":203,"difficulty":1,"category":"文学常识","question":"在阎罗王的生死簿上，孙悟空只能活多少岁？","options":["二百五十一岁","三百四十二岁","四百八十三岁","五百七十四岁"],"answer":1,"explanation":"正确答案：三百四十二岁","chapter":"原著","type":"文学常识"},{"id":204,"difficulty":1,"category":"回目情节","question":"定海神针最初是谁用的？","options":["太上老君","大禹","轩辕黄帝","女娲"],"answer":1,"explanation":"正确答案：大禹","chapter":"原著","type":"回目情节"},{"id":205,"difficulty":1,"category":"人物识别","question":"以下哪位不是孙悟空的结义兄弟？","options":["如意真仙","镇元大仙","蛟魔王","牛魔王"],"answer":1,"explanation":"正确答案：镇元大仙","chapter":"原著","type":"人物识别"},{"id":206,"difficulty":1,"category":"人物识别","question":"观音菩萨身边的惠岸行者的本名叫做？","options":["金吒","木吒","水吒","火吒"],"answer":1,"explanation":"正确答案：木吒","chapter":"原著","type":"人物识别"},{"id":207,"difficulty":1,"category":"人物识别","question":"小说《西游记》中，二郎神杨戬是玉皇大帝的？","options":["义子","侄子","儿子","外甥"],"answer":3,"explanation":"正确答案：外甥","chapter":"原著","type":"人物识别"},{"id":208,"difficulty":1,"category":"回目情节","question":"金角大王和银角大王住在？","options":["黄风岭黄风洞","枯松涧火云洞","陷空山无底洞","平顶山莲花洞"],"answer":3,"explanation":"正确答案：平顶山莲花洞","chapter":"原著","type":"回目情节"},{"id":209,"difficulty":1,"category":"人物识别","question":"红孩儿的大号叫？","options":["圣婴大王","圣火大王","婴火大王","真火大王"],"answer":0,"explanation":"正确答案：圣婴大王","chapter":"原著","type":"人物识别"},{"id":210,"difficulty":1,"category":"回目情节","question":"在五庄观，孙悟空用金击子在人参果树上共打了几个人参果？","options":["1","2","3","4"],"answer":3,"explanation":"正确答案：4个（其中一个掉地上消失了）","chapter":"原著","type":"回目情节"},{"id":211,"difficulty":1,"category":"回目情节","question":"玉兔精跟着嫦娥在月宫做什么？","options":["织布","捣药","种花","编排歌舞"],"answer":1,"explanation":"正确答案：捣药","chapter":"原著","type":"回目情节"},{"id":212,"difficulty":1,"category":"人物识别","question":"八戒为什么长得像个猪？","options":["投错胎了","他本来就那模样","嫦娥把他变丑了","他喜欢猪，故意变成这样"],"answer":0,"explanation":"正确答案：投错胎了","chapter":"原著","type":"人物识别"},{"id":213,"difficulty":1,"category":"回目情节","question":"小白龙当年犯了什么罪？","options":["偷盗金丹","调戏仙女","打碎玻璃盏","放火烧了明珠"],"answer":3,"explanation":"正确答案：放火烧了明珠","chapter":"原著","type":"回目情节"},{"id":214,"difficulty":1,"category":"文学常识","question":"'三藏真经'共多少部？","options":["三十五","三十六","三十四","四十"],"answer":0,"explanation":"正确答案：三十五部","chapter":"原著","type":"文学常识"},{"id":215,"difficulty":1,"category":"文学常识","question":"《西游记》中的'西天'是指现在的哪里？","options":["尼泊尔","天竺","印度","孟加拉国"],"answer":2,"explanation":"正确答案：印度","chapter":"原著","type":"文学常识"},{"id":216,"difficulty":2,"category":"回目情节","question":"孙悟空学成下列法术的先后顺序是？","options":["筋斗云-长生不老-七十二变","筋斗云-七十二变-长生不老","长生不老-七十二变-筋斗云","七十二变-长生不老-筋斗云"],"answer":2,"explanation":"正确答案：长生不老-七十二变-筋斗云","chapter":"原著","type":"回目情节"},{"id":217,"difficulty":2,"category":"人物识别","question":"第一个与孙悟空交手的妖怪是谁？","options":["混世魔王","南山大王","黑熊精","牛魔王"],"answer":0,"explanation":"正确答案：混世魔王","chapter":"原著","type":"人物识别"},{"id":218,"difficulty":2,"category":"回目情节","question":"在八卦炉中，孙悟空躲在了哪个方位而没有被火烧到？","options":["乾","坤","艮","巽"],"answer":3,"explanation":"正确答案：巽（风位，有风则无火）","chapter":"原著","type":"回目情节"},{"id":219,"difficulty":2,"category":"回目情节","question":"在捉拿孙悟空的过程中，观音菩萨曾经想把哪样东西丢下去砸孙悟空？","options":["金刚镯","净瓶杨柳","莲花宝座","一只臭鞋"],"answer":1,"explanation":"正确答案：净瓶杨柳","chapter":"原著","type":"回目情节"},{"id":220,"difficulty":2,"category":"回目情节","question":"黄风怪手下的虎先锋为捉唐僧而使用的计策是？","options":["调虎离山","声东击西","十面埋伏","金蝉脱壳"],"answer":3,"explanation":"正确答案：金蝉脱壳","chapter":"原著","type":"回目情节"},{"id":221,"difficulty":2,"category":"回目情节","question":"沙僧在流沙河时脖子上带过的九个取经人的骷髅后来怎样了？","options":["被观音菩萨收走","化作阴风而去","被沙僧自己收藏了","沉入流沙河中"],"answer":1,"explanation":"正确答案：化作阴风而去","chapter":"原著","type":"回目情节"},{"id":222,"difficulty":2,"category":"回目情节","question":"万寿山五庄观的镇元子在自己的大殿之上供奉的是？","options":["元始天尊","太上老君","天父地母","天地二字"],"answer":3,"explanation":"正确答案：天地二字","chapter":"原著","type":"回目情节"},{"id":223,"difficulty":2,"category":"回目情节","question":"在和二郎神的变化赌斗中，孙悟空最后变成的一种动物是？","options":["黑鱼","水蛇","花鸨","土地庙"],"answer":2,"explanation":"正确答案：花鸨","chapter":"原著","type":"回目情节"},{"id":224,"difficulty":2,"category":"回目情节","question":"二郎神随身携带的武器，除了三尖两刃刀外，还有一件是？","options":["弓箭","AK-47","弹弓","紫青宝剑"],"answer":0,"explanation":"正确答案：弓箭","chapter":"原著","type":"回目情节"},{"id":225,"difficulty":2,"category":"回目情节","question":"孙悟空被红孩儿的三昧真火烧得昏死过去，是谁救了他？","options":["东海龙王","猪八戒","沙僧","120急救中心"],"answer":1,"explanation":"正确答案：猪八戒（用按摩禅法）","chapter":"原著","type":"回目情节"},{"id":226,"difficulty":2,"category":"人物识别","question":"黑水河中的鼍龙怪是谁的外甥？","options":["东海龙王敖广","西海龙王敖闰","南海龙王敖钦","北海龙王敖顺"],"answer":1,"explanation":"正确答案：西海龙王敖闰","chapter":"原著","type":"人物识别"},{"id":227,"difficulty":2,"category":"回目情节","question":"在车迟国斗法时，师徒四人和三个妖怪比赛的第一项是？","options":["隔板猜枚","云梯显圣","祭坛求雨","砍头剜心"],"answer":2,"explanation":"正确答案：祭坛求雨","chapter":"原著","type":"回目情节"},{"id":228,"difficulty":2,"category":"回目情节","question":"狮驼国的三魔头金翅大鹏鸟神通广大，他一翅可以飞多远？","options":["八万里","九万里","十万里","十万八千里"],"answer":1,"explanation":"正确答案：九万里","chapter":"原著","type":"回目情节"},{"id":229,"difficulty":2,"category":"人物识别","question":"金翅大鹏鸟和如来佛祖的关系是？","options":["师徒关系","兄弟关系","舅甥关系","父子关系"],"answer":2,"explanation":"正确答案：舅甥关系","chapter":"原著","type":"人物识别"},{"id":230,"difficulty":2,"category":"回目情节","question":"乌鸡国真国王活过来后，孙悟空把他打扮成什么，第二天进了城？","options":["道士","和尚","商人","仆人"],"answer":1,"explanation":"正确答案：和尚","chapter":"原著","type":"回目情节"},{"id":231,"difficulty":2,"category":"回目情节","question":"在《小雷音弥勒擒黄眉》故事中，悟空被困在什么里面出不来？","options":["金圈","金铙","金球","金碗"],"answer":1,"explanation":"正确答案：金铙","chapter":"原著","type":"回目情节"},{"id":232,"difficulty":2,"category":"回目情节","question":"唐僧被妖精变成老虎后，白龙马变成什么去刺杀妖精？","options":["宫娥","将士","士兵","仆人"],"answer":0,"explanation":"正确答案：宫娥","chapter":"原著","type":"回目情节"},{"id":233,"difficulty":2,"category":"回目情节","question":"在车迟国斗法时，孙悟空、猪八戒、沙僧进了三清观，孙悟空变成了？","options":["元始天尊","太上老君","灵道宝君","小和尚"],"answer":0,"explanation":"正确答案：元始天尊","chapter":"原著","type":"回目情节"},{"id":234,"difficulty":3,"category":"回目情节","question":"唐僧师徒第一次得到的是假的经书，是被谁发现并派白雄尊者抢回来的？","options":["弥勒笑佛","燃灯古佛","如来佛祖","观音菩萨"],"answer":1,"explanation":"正确答案：燃灯古佛","chapter":"原著","type":"回目情节"},{"id":235,"difficulty":3,"category":"回目情节","question":"比丘国王被寿星坐骑白鹿变化的国丈迷惑，欲用多少小儿的心肝做药引？","options":["999","1001","1101","1111"],"answer":3,"explanation":"正确答案：1111","chapter":"原著","type":"回目情节"},{"id":236,"difficulty":3,"category":"回目情节","question":"须菩提祖师用戒尺在悟空头上轻敲了三下，是什么用意？","options":["师父惩罚悟空","祖师叫他三更时分从前门进入","祖师叫他三更时分从后门进入","赶他离开"],"answer":2,"explanation":"正确答案：祖师叫他三更时分从后门进入","chapter":"原著","type":"回目情节"},{"id":237,"difficulty":3,"category":"人物识别","question":"《盘丝洞棒打蜘蛛精》故事中，毗蓝婆菩萨帮孙悟空制服了蜈蚣精，毗蓝婆菩萨的儿子是谁？","options":["火德星君","水德星官","昴日星官","旭日星官"],"answer":2,"explanation":"正确答案：昴日星官","chapter":"原著","type":"人物识别"}];
 var ADMIN_PASSWORD = 'xiyouji2026';
 var state = { name:'', mode:'mixed', timeLimit:15, quiz:[], currentIdx:0, answers:[], startTime:0, questionStartTime:0, timerId:null, tabSwitchCount:0, finished:false, cloud:{ type:'', bmobId:'', bmobKey:'' }, csvContent:'', rankRecords:[] };
 
@@ -402,7 +1286,7 @@ function testCloudSubmit() {
     } else {
       showToast('失败：' + (result.error || '未知错误'));
       var detail = document.getElementById('detailHint');
-      if (detail) detail.innerHTML = '<span style="color:#c43b3b;">调试信息：HTTP ' + result.status + ' | ' + (result.response || '无响应') + '</span>';
+      if (detail) detail.innerHTML = '<span style="color:var(--accent-red);">调试信息：HTTP ' + result.status + ' | ' + (result.response || '无响应') + '</span>';
     }
   });
 }
@@ -497,7 +1381,7 @@ function onVisibilityChange() {
 }
 function renderQuestion() {
   var q = state.quiz[state.currentIdx];
-  document.getElementById('quizInfo').textContent = '第 ' + (state.currentIdx + 1) + ' / ' + state.quiz.length + ' 题 [' + q.category + ']';
+  document.getElementById('quizInfo').innerHTML = '第 <span>' + (state.currentIdx + 1) + '</span> / ' + state.quiz.length + ' 题 <span style="color:var(--text-tertiary);">[' + q.category + ']</span>';
   document.getElementById('questionText').textContent = q.question;
   var box = document.getElementById('optionsBox');
   box.innerHTML = '';
@@ -550,16 +1434,14 @@ function selectOption(idx) {
   var timeUsed = Math.round((Date.now() - state.questionStartTime) / 1000);
   state.answers.push({ qIdx: state.currentIdx, selected: idx, correct: correct, time: timeUsed });
   
-  // 飘字动画 + 震动
   if (correct) {
-    showFloatText('+5', '#4caf50');
+    showFloatText('+5', 'var(--accent-green)');
     if (navigator.vibrate) navigator.vibrate([50]);
   } else if (idx !== -1) {
     showFloatText('✗', '#f44336');
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
   }
   
-  // 知识彩蛋（每5题）
   if ((state.currentIdx + 1) % 5 === 0) showEggTip();
   
   var opts = document.querySelectorAll('.option');
@@ -612,7 +1494,7 @@ function submitExam() {
   else { title = '凡人村民 🧑‍🌾'; titleDesc = '肉眼凡胎，读书太少！'; }
   document.getElementById('scoreNum').textContent = score;
   document.getElementById('fullScore').textContent = 100;
-  document.getElementById('titleName').innerHTML = title + '<br><span style="font-size:14px;color:#8d6e63;font-weight:normal;">' + titleDesc + '</span>';
+  document.getElementById('titleName').innerHTML = title + '<br><span style="font-size:14px;color:var(--text-tertiary);font-weight:400;">' + titleDesc + '</span>';
   document.getElementById('correctCount').textContent = correct;
   document.getElementById('wrongCount').textContent = wrong;
   document.getElementById('timeUsed').textContent = totalTime;
@@ -631,7 +1513,7 @@ function submitExam() {
       var div = document.createElement('div');
       div.className = 'review-item';
       var selText = a.selected >= 0 ? q.options[a.selected] : '超时未选';
-      div.innerHTML = '<div class="q">' + q.question + '</div><div>你的答案：<span class="w">' + selText + '</span> | 正确答案：<span class="a">' + q.options[q.answer] + '</span></div><div style="color:#8d6e63; margin-top:4px; font-size:13px;">' + q.explanation + '</div>';
+      div.innerHTML = '<div class="q">' + q.question + '</div><div>你的答案：<span class="w">' + selText + '</span> | 正确答案：<span class="a">' + q.options[q.answer] + '</span></div><div style="color:var(--text-tertiary); margin-top:4px; font-size:13px;">' + q.explanation + '</div>';
       list.appendChild(div);
     }
   }
@@ -757,7 +1639,7 @@ function getBmobRank(myName, myScore, myTime) {
     var liveRankDetail = document.getElementById('liveRankDetail');
     var liveRankCard = document.getElementById('liveRankCard');
     var trophyBar = document.getElementById('trophyBar');
-    if (liveRankEl) liveRankEl.innerHTML = '第 <span style="font-size:40px;">' + rank + '</span> 名';
+    if (liveRankEl) liveRankEl.innerHTML = '第 <span style="font-size:44px;">' + rank + '</span> 名';
     if (liveRankDetail) liveRankDetail.innerHTML = '全班共 ' + total + ' 人 | 超越 ' + beatPct + '% 同学';
     if (trophyBar) trophyBar.style.width = (100 - topPct) + '%';
     if (liveRankCard) liveRankCard.style.display = 'block';
@@ -966,7 +1848,6 @@ function drawTeacherCharts(list) {
   if (!card || list.length === 0) return;
   card.style.display = 'block';
   
-  // 分数分布柱状图
   var scoreCtx = document.getElementById('scoreChart').getContext('2d');
   var scoreBins = { '60以下':0, '60-69':0, '70-79':0, '80-89':0, '90-99':0, '100':0 };
   for (var i = 0; i < list.length; i++) {
@@ -978,9 +1859,8 @@ function drawTeacherCharts(list) {
     else if (s < 100) scoreBins['90-99']++;
     else scoreBins['100']++;
   }
-  drawBarChart(scoreCtx, Object.keys(scoreBins), Object.values(scoreBins), '#c43b3b', '人数');
+  drawBarChart(scoreCtx, Object.keys(scoreBins), Object.values(scoreBins), 'var(--accent-red-soft)', '人数');
   
-  // 正确率饼图
   var accCtx = document.getElementById('accuracyChart').getContext('2d');
   var accData = [0, 0, 0];
   for (var i = 0; i < list.length; i++) {
@@ -989,9 +1869,8 @@ function drawTeacherCharts(list) {
     else if (s >= 60) accData[1]++;
     else accData[2]++;
   }
-  drawPieChart(accCtx, ['优秀(≥80)', '及格(60-79)', '不及格(<60)'], accData, ['#4caf50', '#d4a843', '#f44336']);
+  drawPieChart(accCtx, ['优秀(≥80)', '及格(60-79)', '不及格(<60)'], accData, ['var(--accent-green)', 'var(--accent-gold)', '#f44336']);
   
-  // 用时统计柱状图
   var timeCtx = document.getElementById('timeChart').getContext('2d');
   var timeBins = { '<60秒':0, '60-120秒':0, '120-180秒':0, '>180秒':0 };
   for (var i = 0; i < list.length; i++) {
@@ -1001,7 +1880,7 @@ function drawTeacherCharts(list) {
     else if (t < 180) timeBins['120-180秒']++;
     else timeBins['>180秒']++;
   }
-  drawBarChart(timeCtx, Object.keys(timeBins), Object.values(timeBins), '#d4a843', '人数');
+  drawBarChart(timeCtx, Object.keys(timeBins), Object.values(timeBins), 'var(--accent-gold)', '人数');
 }
 
 function drawBarChart(ctx, labels, data, color, yLabel) {
@@ -1009,7 +1888,7 @@ function drawBarChart(ctx, labels, data, color, yLabel) {
   var pad = 40, max = Math.max.apply(Math, data);
   if (max === 0) max = 1;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#3e2723'; ctx.font = '12px serif'; ctx.textAlign = 'center';
+  ctx.fillStyle = 'var(--text-primary)'; ctx.font = '12px serif'; ctx.textAlign = 'center';
   var bw = (w - pad * 2) / labels.length - 10;
   for (var i = 0; i < labels.length; i++) {
     var bh = (data[i] / max) * (h - pad * 2);
@@ -1017,7 +1896,7 @@ function drawBarChart(ctx, labels, data, color, yLabel) {
     var y = h - pad - bh;
     ctx.fillStyle = color;
     ctx.fillRect(x, y, bw, bh);
-    ctx.fillStyle = '#3e2723';
+    ctx.fillStyle = 'var(--text-primary)';
     ctx.fillText(data[i], x + bw / 2, y - 5);
     ctx.fillText(labels[i], x + bw / 2, h - pad + 15);
   }
@@ -1041,11 +1920,11 @@ function drawPieChart(ctx, labels, data, colors) {
     ctx.fill();
     start += angle;
   }
-  ctx.fillStyle = '#3e2723'; ctx.font = '12px serif'; ctx.textAlign = 'left';
+  ctx.fillStyle = 'var(--text-primary)'; ctx.font = '12px serif'; ctx.textAlign = 'left';
   for (var i = 0; i < labels.length; i++) {
     ctx.fillStyle = colors[i];
     ctx.fillRect(cx + r + 20, 30 + i * 22, 12, 12);
-    ctx.fillStyle = '#3e2723';
+    ctx.fillStyle = 'var(--text-primary)';
     ctx.fillText(labels[i] + ' (' + data[i] + '人)', cx + r + 38, 40 + i * 22);
   }
 }
@@ -1058,7 +1937,6 @@ setTimeout(function() {
 loadCloudConfig();
 </script>
 
-<!-- 背景音乐 -->
 <audio id="bgMusic" loop preload="none">
   <source src="https://music.163.com/song/media/outer/url?id=478507889.mp3" type="audio/mpeg">
 </audio>
