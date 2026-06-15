@@ -1057,14 +1057,14 @@
       <div class="mode-card active" data-mode="mixed" onclick="selectMode(this)">
         <div class="mode-icon">🌀</div>
         <div class="mode-info">
-          <div class="mode-name">凌霄论道</div>
+          <div class="mode-name">斗法·天命归我</div>
           <div class="mode-desc">比赛 · 20题：简单8+中等8+困难4</div>
         </div>
       </div>
       <div class="mode-card" data-mode="challenge" onclick="selectMode(this)">
         <div class="mode-icon">⚔️</div>
         <div class="mode-info">
-          <div class="mode-name">破茧成佛</div>
+          <div class="mode-name">修行·六根完满</div>
           <div class="mode-desc">闯关 · 三关：基础→中等→困难</div>
         </div>
       </div>
@@ -1212,8 +1212,8 @@
         </select>
         <select id="rankModeFilter" onchange="loadBmobRank()" style="padding:6px 12px; border:2px solid var(--border-subtle); border-radius:var(--radius-sm); font-size:14px; background:var(--bg-card-hover); color:var(--text-primary); cursor:pointer;">
           <option value="all">全部模式</option>
-          <option value="match">凌霄论道（比赛）</option>
-          <option value="challenge">破茧成佛（闯关）</option>
+          <option value="match">斗法·天命归我（比赛）</option>
+          <option value="challenge">修行·六根完满（闯关）</option>
         </select>
       </div>
     </div>
@@ -1541,18 +1541,18 @@ function submitChallengeResult(passedAll) {
   var score = accuracy;
   var reachedLevel = state.challengeLevel;
 
-  var title = '凡人村民 🧑‍🌾';
-  var titleDesc = '肉眼凡胎，读书太少！';
+  var title = '凡人村民';
+  var titleDesc = '芸芸众生，尚未觉醒';
   if (passedAll && reachedLevel === 3) {
-    if (accuracy >= 100) { title = '如来佛祖 🌟'; titleDesc = '全知全能，佛法无边！'; }
-    else if (accuracy >= 95) { title = '斗战胜佛 🏆'; titleDesc = '功行圆满，超凡入圣！'; }
-    else if (accuracy >= 90) { title = '齐天大圣 🥇'; titleDesc = '神通广大，无人能敌！'; }
-    else if (accuracy >= 80) { title = '美猴王 🥈'; titleDesc = '身手不凡，英勇善战！'; }
-    else { title = '金身罗汉 🥉'; titleDesc = '武艺高强，忠心护主！'; }
+    if (accuracy >= 100) { title = '天命人 ★'; titleDesc = '六根完满，天命所归！'; }
+    else if (accuracy >= 95) { title = '大圣残躯 🏆'; titleDesc = '残躯不灭，战意不止！'; }
+    else if (accuracy >= 90) { title = '真大圣 🥇'; titleDesc = '降伏六贼，心猿归正！'; }
+    else if (accuracy >= 80) { title = '小圣 🥈'; titleDesc = '初窥门径，志得意满！'; }
+    else { title = '金身罗汉 🥉'; titleDesc = '修行未满，尚需精进！'; }
   } else {
-    if (reachedLevel === 1) { title = '虾兵蟹将 🦐'; titleDesc = '第一关未通过，尚需磨炼！'; }
-    else if (reachedLevel === 2) { title = '小钻风 🌪️'; titleDesc = '通过第一关，第二关落败！'; }
-    else if (reachedLevel === 3 && !passedAll) { title = '天蓬元帅 🐷'; titleDesc = '通过两关，第三关落败！'; }
+    if (reachedLevel === 1) { title = '小妖 🦊'; titleDesc = '六根未净，初入轮回！'; }
+    else if (reachedLevel === 2) { title = '广智 🔥'; titleDesc = '拔剑四顾，道心未坚！'; }
+    else if (reachedLevel === 3 && !passedAll) { title = '百眼魔君 🕷️'; titleDesc = '千目难辨，败于执念！'; }
   }
 
   document.getElementById('scoreNum').textContent = accuracy;
@@ -1609,21 +1609,21 @@ function submitExam() {
   var wrong = state.answers.length - correct;
   var score = Math.round((correct / state.quiz.length) * 100);
   var accuracy = Math.round((correct / state.quiz.length) * 100);
-  var title = '白龙马 🐴';
-  var titleDesc = '还需努力，继续取经！';
-  if (score >= 100) { title = '如来佛祖 🌟'; titleDesc = '全知全能，佛法无边！'; }
-  else if (score >= 95) { title = '斗战胜佛 🏆'; titleDesc = '功行圆满，超凡入圣！'; }
-  else if (score >= 90) { title = '齐天大圣 🥇'; titleDesc = '神通广大，无人能敌！'; }
-  else if (score >= 85) { title = '美猴王 🥈'; titleDesc = '身手不凡，英勇善战！'; }
-  else if (score >= 80) { title = '金身罗汉 🥉'; titleDesc = '武艺高强，忠心护主！'; }
-  else if (score >= 75) { title = '天蓬元帅 🐷'; titleDesc = '力大无穷，憨态可掬！'; }
-  else if (score >= 70) { title = '卷帘大将 🌊'; titleDesc = '勤勤恳恳，任劳任怨！'; }
-  else if (score >= 65) { title = '东海龙王 🐉'; titleDesc = '掌管一方，法力初成！'; }
-  else if (score >= 60) { title = '托塔天王 🏰'; titleDesc = '初具威名，尚可一战！'; }
-  else if (score >= 50) { title = '白骨精 👻'; titleDesc = '手段有限，还需修炼！'; }
-  else if (score >= 40) { title = '小钻风 🌪️'; titleDesc = '巡山放哨，勉强度日！'; }
-  else if (score >= 30) { title = '虾兵蟹将 🦐'; titleDesc = '法力微弱，尚需磨炼！'; }
-  else { title = '凡人村民 🧑‍🌾'; titleDesc = '肉眼凡胎，读书太少！'; }
+  var title = '凡人村民';
+  var titleDesc = '芸芸众生，尚未觉醒';
+  if (score >= 100) { title = '天命人 ★'; titleDesc = '天命所归，万物臣服！'; }
+  else if (score >= 95) { title = '大圣残躯 🏆'; titleDesc = '残躯不灭，战意不止！'; }
+  else if (score >= 90) { title = '真大圣 🥇'; titleDesc = '降妖除魔，所向披靡！'; }
+  else if (score >= 85) { title = '小圣 🥈'; titleDesc = '锋芒初露，少年英雄！'; }
+  else if (score >= 80) { title = '金身罗汉 🥉'; titleDesc = '金刚不坏，百邪不侵！'; }
+  else if (score >= 75) { title = '黄风大圣 🌪️'; titleDesc = '三昧神风，遮天蔽日！'; }
+  else if (score >= 70) { title = '黑熊精 🐻'; titleDesc = '偷丹窃火，自作聪明！'; }
+  else if (score >= 65) { title = '亢金龙 🐉'; titleDesc = '龙游浅滩，暂失锋芒！'; }
+  else if (score >= 60) { title = '虎先锋 🐯'; titleDesc = '先锋之勇，谋略不足！'; }
+  else if (score >= 50) { title = '石母 🪨'; titleDesc = '顽石初醒，懵懂无知！'; }
+  else if (score >= 40) { title = '广智 🔥'; titleDesc = '剑未佩好，急火攻心！'; }
+  else if (score >= 30) { title = '小妖 🦊'; titleDesc = '道行浅薄，不堪一击！'; }
+  else { title = '凡人村民'; titleDesc = '芸芸众生，尚未觉醒'; }
   document.getElementById('scoreNum').textContent = score;
   document.getElementById('fullScore').textContent = 100;
   document.getElementById('titleName').innerHTML = title + '<br><span style="font-size:14px;color:var(--text-tertiary);font-weight:400;">' + titleDesc + '</span>';
@@ -1778,7 +1778,7 @@ function getBmobRank(myName, myScore, myTime) {
     var liveRankDetail = document.getElementById('liveRankDetail');
     var liveRankCard = document.getElementById('liveRankCard');
     var trophyBar = document.getElementById('trophyBar');
-    var modeName = myMode === 'challenge' ? '破茧成佛' : '凌霄论道';
+    var modeName = myMode === 'challenge' ? '修行·六根完满' : '斗法·天命归我';
     if (liveRankEl) liveRankEl.innerHTML = '第 <span style="font-size:44px;">' + rank + '</span> 名';
     if (liveRankDetail) liveRankDetail.innerHTML = modeName + '共 ' + total + ' 人 | 超越 ' + beatPct + '% 同学';
     if (trophyBar) trophyBar.style.width = (100 - topPct) + '%';
@@ -2006,7 +2006,7 @@ function loadBmobRank() {
     tbody.innerHTML = '';
     var modeLabel = document.getElementById('rankModeFilter') ? document.getElementById('rankModeFilter').value : 'all';
     var phaseLabel = document.getElementById('rankPhaseFilter') ? document.getElementById('rankPhaseFilter').value : 'all';
-    var modeText = modeLabel === 'match' ? '凌霄论道' : (modeLabel === 'challenge' ? '破茧成佛' : '全部模式');
+    var modeText = modeLabel === 'match' ? '斗法·天命归我' : (modeLabel === 'challenge' ? '修行·六根完满' : '全部模式');
     var phaseText = phaseLabel === 'all' ? '全部期数' : ('第' + phaseLabel + '期');
     var labelEl = document.getElementById('rankFilterLabel');
     if (labelEl) labelEl.textContent = '当前显示：' + phaseText + ' · ' + modeText;
@@ -2014,7 +2014,7 @@ function loadBmobRank() {
       var r = list[i];
       var tr = document.createElement('tr');
       var phaseTag = '<span style="color:var(--text-tertiary);font-size:12px;">第' + (r.phase || 1) + '期</span>';
-      var modeTag = r.mode === 'match' ? '<span style="color:var(--accent-blue);font-size:12px;">凌霄论道</span>' : (r.mode === 'challenge' ? '<span style="color:var(--accent-gold);font-size:12px;">破茧成佛</span>' : '<span style="color:var(--text-tertiary);font-size:12px;">-</span>');
+      var modeTag = r.mode === 'match' ? '<span style="color:var(--accent-blue);font-size:12px;">斗法</span>' : (r.mode === 'challenge' ? '<span style="color:var(--accent-gold);font-size:12px;">修行</span>' : '<span style="color:var(--text-tertiary);font-size:12px;">-</span>');
       tr.innerHTML = '<td><span class="rank-num">' + (i + 1) + '</span></td><td>' + (r.name || '') + '</td><td>' + (r.score || 0) + '</td><td>' + (r.time || 0) + '秒</td><td>' + (r.date || '') + '</td><td>' + phaseTag + '</td><td>' + modeTag + '</td>';
       tbody.appendChild(tr);
     }
