@@ -1967,13 +1967,26 @@ function getBmobRank(myName, myScore, myTime) {
   function showRank(data) {
     if (!data || !data.results) return;
     var list = data.results;
-    var filteredList = [];
     var myMode = state.mode === 'challenge' ? 'challenge' : 'match';
     var myPhase = state.phase || 1;
+    // 先按同模式同场次过滤，再按姓名去重保留最好成绩
+    var bestMap = {};
     for (var i = 0; i < list.length; i++) {
-      if ((!list[i].mode || list[i].mode === myMode) && (list[i].phase || 1) === myPhase) filteredList.push(list[i]);
+      var r = list[i];
+      if ((!r.mode || r.mode === myMode) && (r.phase || 1) === myPhase) {
+        var name = r.name || '';
+        if (!bestMap[name] || r.score > bestMap[name].score || (r.score === bestMap[name].score && r.time < bestMap[name].time)) {
+          bestMap[name] = r;
+        }
+      }
     }
-    list = filteredList;
+    var uniqueList = [];
+    for (var k in bestMap) { if (bestMap.hasOwnProperty(k)) uniqueList.push(bestMap[k]); }
+    uniqueList.sort(function(a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.time - b.time;
+    });
+    list = uniqueList;
     var rank = 1;
     for (var i = 0; i < list.length; i++) {
       if (list[i].score > myScore) rank++;
