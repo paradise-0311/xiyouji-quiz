@@ -1194,21 +1194,21 @@
   </div>
   <div class="card" id="rankCard" style="display:none;">
     <div class="card-title">🏆 排名榜单</div>
+    <div style="overflow-x:auto;">
+      <table class="rank-table" id="rankTable"><thead><tr><th>排名</th><th>姓名</th><th>分数</th><th>用时</th><th>日期</th></tr></thead><tbody id="rankBody"></tbody></table>
+    </div>
+    <div class="hint">排名规则：分数高者在前，同分用时短者在前。</div>
+  </div>
   <div class="card" id="questionStatsCard" style="display:none;">
     <div class="card-title">📊 题目正确率统计</div>
     <div style="margin-bottom:12px;">
-      <button class="btn" style="width:auto;padding:8px 16px;display:inline-block;margin-right:8px;font-size:14px;" onclick="loadQuestionStats()">加载正确率数据</button>
+      <button class="btn" style="width:auto;padding:8px 16px;display:inline-block;margin-right:8px;font-size:14px;" onclick="loadQuestionStats()">🔄 从 Bmob 加载正确率数据</button>
       <span id="statsCount" style="color:var(--text-tertiary);font-size:13px;"></span>
     </div>
     <div style="overflow-x:auto;">
       <table class="rank-table" id="statsTable"><thead><tr><th>题目ID</th><th>题目</th><th>难度</th><th>总答</th><th>正确</th><th>错误</th><th>正确率</th></tr></thead><tbody id="statsBody"></tbody></table>
     </div>
-    <div class="hint">数据来源：学生答题记录汇总。可据此优化题库难度。</div>
-  </div>
-    <div style="overflow-x:auto;">
-      <table class="rank-table" id="rankTable"><thead><tr><th>排名</th><th>姓名</th><th>分数</th><th>用时</th><th>日期</th></tr></thead><tbody id="rankBody"></tbody></table>
-    </div>
-    <div class="hint">排名规则：分数高者在前，同分用时短者在前。</div>
+    <div class="hint">数据来源：Bmob云端学生答题记录。绿色≥80%（可降级）、红色&lt;50%（需调整）、黄色介于两者之间。</div>
   </div>
   <div class="card" id="bmobRankCard" style="display:none;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -1283,6 +1283,46 @@ function playVoice(type) {
   } catch(e) {}
 }
 // =========================================
+
+// ===== 答题中断自动提交 =====
+function updateProgressSnapshot() {
+  if (state.finished || state.submitted) return;
+  var answered = state.answers.length;
+  if (answered === 0) return;
+  var correct = 0;
+  var score = 0;
+  for (var i = 0; i < state.answers.length; i++) {
+    if (state.answers[i].correct) correct++;
+    score += state.answers[i].score || 0;
+  }
+  state.currentProgress = {
+    name: state.name,
+    score: score,
+    time: Math.round((Date.now() - state.startTime) / 1000),
+    date: formatDate(),
+    mode: state.mode === 'challenge' ? 'challenge' : 'match',
+    correct: correct,
+    total: answered,
+    phase: state.phase || 1,
+    status: 'interrupted'
+  };
+}
+function onPageExit() {
+  if (state.submitted || !state.currentProgress || !state.cloud.type) return;
+  try {
+    var data = state.currentProgress;
+    var bmobId = state.cloud.bmobId;
+    var bmobKey = state.cloud.bmobKey;
+    var payload = JSON.stringify({ name: data.name, score: data.score, time: data.time, date: data.date, mode: data.mode, correct: data.correct, total: data.total, phase: data.phase, status: 'interrupted' });
+    var headers = { 'Content-Type': 'application/json', 'X-Bmob-Application-Id': bmobId, 'X-Bmob-REST-API-Key': bmobKey };
+    if (typeof fetch !== 'undefined') {
+      fetch('https://api.bmobcloud.com/1/classes/ScoreBoard', { method: 'POST', headers: headers, body: payload, keepalive: true });
+    }
+  } catch(e) {}
+}
+window.addEventListener('beforeunload', onPageExit);
+window.addEventListener('pagehide', onPageExit);
+// =============================
 
 function _ep(p){var r='';for(var j=0;j<p.length;j++){r+=String.fromCharCode(p.charCodeAt(j)+5)}return r;}
 
@@ -1402,6 +1442,8 @@ function startQuiz() {
   state.maxCombo = 0;
   state.comboScore = 0;
   state.questionStats = {};
+  state.submitted = false;
+  state.currentProgress = null;
   if (state.mode === 'challenge') {
     state.challengeLevel = 1;
     state.challengeCorrect = 0;
@@ -1614,6 +1656,7 @@ function selectOption(idx) {
   exp.classList.add('show');
   document.getElementById('nextBtn').disabled = false;
   if (state.currentIdx === state.quiz.length - 1) document.getElementById('submitBtn').disabled = false;
+  updateProgressSnapshot();
 }
 function nextQuestion() {
   state.currentIdx++;
@@ -1728,7 +1771,7 @@ function submitChallengeResult(passedAll) {
   var dateStr = formatDate();
   state.csvContent = generateCSV();
   if (state.cloud.type && state.cloud.type !== '') {
-    autoSubmitToCloud({ name: state.name, score: score, time: totalTime, date: dateStr, mode: 'challenge', correct: correct, total: total, level: reachedLevel, phase: state.phase });
+    autoSubmitToCloud({ name: state.name, score: score, time: totalTime, date: dateStr, mode: 'challenge', correct: correct, total: total, level: reachedLevel, phase: state.phase, questionStats: state.questionStats });
   }
 }
 
@@ -1837,7 +1880,9 @@ function submitToCloudDebug(data, type) {
         url = 'https://api.bmobcloud.com/1/classes/ScoreBoard';
         headers['X-Bmob-Application-Id'] = bmobId;
         headers['X-Bmob-REST-API-Key'] = bmobKey;
-        payload = JSON.stringify({ name: data.name, score: data.score, time: data.time, date: data.date, mode: data.mode, correct: data.correct, total: data.total, phase: data.phase || 1 });
+        var payloadObj = { name: data.name, score: data.score, time: data.time, date: data.date, mode: data.mode, correct: data.correct, total: data.total, phase: data.phase || 1 };
+        if (data.questionStats) payloadObj.questionStats = data.questionStats;
+        payload = JSON.stringify(payloadObj);
       } else {
         resolve({ success: false, error: '非Bmob类型', status: 0, response: '' }); return;
       }
@@ -1870,6 +1915,7 @@ function submitToCloud(data, type) {
 }
 
 function autoSubmitToCloud(data) {
+  state.submitted = true;
   submitToCloud(data, state.cloud.type).then(function(ok) {
     if (ok) {
       showToast('成绩已自动提交到云端');
@@ -2024,47 +2070,89 @@ function downloadCSV() {
 function toggleReview() { var card = document.getElementById('reviewCard'); card.style.display = card.style.display === 'none' ? 'block' : 'none'; }
 
 function loadQuestionStats() {
-  if (state.rankRecords.length === 0) { showToast('请先加载成绩数据'); return; }
+  var bmobId = state.cloud.bmobId;
+  var bmobKey = state.cloud.bmobKey;
+  if (!bmobId || !bmobKey) { showToast('请先配置 Bmob AppID 和 AppKey'); return; }
+  showToast('正在从 Bmob 拉取题目正确率数据...');
   var tbody = document.getElementById('statsBody');
-  tbody.innerHTML = '';
-  var statsMap = {};
-  // 汇总所有学生的questionStats
-  for (var i = 0; i < state.rankRecords.length; i++) {
-    var r = state.rankRecords[i];
-    if (r.questionStats) {
-      for (var qId in r.questionStats) {
-        if (!statsMap[qId]) statsMap[qId] = { correct: 0, total: 0 };
-        statsMap[qId].correct += r.questionStats[qId].correct;
-        statsMap[qId].total += r.questionStats[qId].total;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);">加载中...</td></tr>';
+  document.getElementById('questionStatsCard').style.display = 'block';
+
+  // 从 Bmob 拉取所有成绩记录（包含 questionStats）
+  var url = 'https://api.bmobcloud.com/1/classes/ScoreBoard?limit=500&order=-score,time';
+  var headers = { 'X-Bmob-Application-Id': bmobId, 'X-Bmob-REST-API-Key': bmobKey };
+
+  function processRecords(records) {
+    var statsMap = {};
+    var hasStats = false;
+    // 汇总所有学生的 questionStats
+    for (var i = 0; i < records.length; i++) {
+      var r = records[i];
+      if (r.questionStats) {
+        hasStats = true;
+        for (var qId in r.questionStats) {
+          if (!statsMap[qId]) statsMap[qId] = { correct: 0, wrong: 0, total: 0 };
+          var qs = r.questionStats[qId];
+          if (qs.correct) statsMap[qId].correct += qs.correct;
+          if (qs.wrong) statsMap[qId].wrong += qs.wrong;
+          if (qs.total) statsMap[qId].total += qs.total;
+        }
       }
     }
-  }
-  // 转为数组并排序（按正确率升序，最难的在前）
-  var statsArr = [];
-  for (var qId in statsMap) {
-    var s = statsMap[qId];
-    var rate = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
-    // 查找题目信息
-    var qInfo = null;
-    for (var j = 0; j < QUESTIONS.length; j++) {
-      if (QUESTIONS[j].id == qId) { qInfo = QUESTIONS[j]; break; }
+    if (!hasStats) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--accent-gold);">暂无题目正确率数据。学生答题后数据会自动累积。</td></tr>';
+      document.getElementById('statsCount').textContent = '0 题';
+      return;
     }
-    if (qInfo) {
-      statsArr.push({ id: qId, question: qInfo.question, difficulty: qInfo.difficulty, total: s.total, correct: s.correct, rate: rate });
+    // 转为数组并按正确率升序排列（最难的在前）
+    var statsArr = [];
+    for (var qId in statsMap) {
+      var s = statsMap[qId];
+      var rate = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
+      var qInfo = null;
+      for (var j = 0; j < QUESTIONS.length; j++) {
+        if (QUESTIONS[j].id == qId) { qInfo = QUESTIONS[j]; break; }
+      }
+      if (qInfo) {
+        statsArr.push({ id: qId, question: qInfo.question, difficulty: qInfo.difficulty, total: s.total, correct: s.correct, wrong: s.wrong || (s.total - s.correct), rate: rate });
+      }
     }
+    statsArr.sort(function(a, b) { return a.rate - b.rate; });
+    // 渲染表格
+    tbody.innerHTML = '';
+    var displayCount = Math.min(statsArr.length, 100);
+    for (var i = 0; i < displayCount; i++) {
+      var s = statsArr[i];
+      var tr = document.createElement('tr');
+      var diffLabel = s.difficulty === 1 ? '简单' : (s.difficulty === 2 ? '中等' : '困难');
+      var diffColor = s.difficulty === 1 ? 'var(--accent-green)' : (s.difficulty === 2 ? 'var(--accent-gold)' : 'var(--accent-red)');
+      var rateColor = s.rate >= 80 ? 'var(--accent-green)' : (s.rate >= 50 ? 'var(--accent-gold)' : 'var(--accent-red)');
+      var badge = s.rate >= 90 ? '<span style="font-size:11px;background:var(--accent-green);color:#fff;padding:1px 5px;border-radius:8px;margin-left:4px;">降级</span>' : (s.rate < 30 ? '<span style="font-size:11px;background:var(--accent-red);color:#fff;padding:1px 5px;border-radius:8px;margin-left:4px;">调整</span>' : '');
+      tr.innerHTML = '<td>' + s.id + '</td><td style="text-align:left;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + s.question + '</td><td style="color:' + diffColor + ';">' + diffLabel + '</td><td>' + s.total + '</td><td>' + s.correct + '</td><td>' + s.wrong + '</td><td style="color:' + rateColor + ';font-weight:600;">' + s.rate + '%' + badge + '</td>';
+      tbody.appendChild(tr);
+    }
+    document.getElementById('statsCount').textContent = '共 ' + statsArr.length + ' 题有数据，显示前 ' + displayCount + ' 题（最难优先）';
+    showToast('已加载 ' + statsArr.length + ' 题正确率数据');
   }
-  statsArr.sort(function(a, b) { return a.rate - b.rate; });
-  // 渲染表格
-  for (var i = 0; i < statsArr.length && i < 50; i++) {
-    var s = statsArr[i];
-    var tr = document.createElement('tr');
-    var rateColor = s.rate >= 80 ? 'var(--accent-green)' : (s.rate >= 50 ? 'var(--accent-gold)' : 'var(--accent-red)');
-    tr.innerHTML = '<td>' + s.id + '</td><td style="text-align:left;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + s.question + '</td><td>' + s.difficulty + '</td><td>' + s.total + '</td><td>' + s.correct + '</td><td>' + (s.total - s.correct) + '</td><td style="color:' + rateColor + ';font-weight:600;">' + s.rate + '%</td>';
-    tbody.appendChild(tr);
+
+  if (typeof fetch !== 'undefined') {
+    fetch(url, { method: 'GET', headers: headers })
+      .then(function(res) { return res.json(); })
+      .then(function(data) { processRecords(data.results || []); })
+      .catch(function() { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--accent-red);">拉取失败，请检查网络</td></tr>'; });
+  } else {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    for (var key in headers) { if (headers.hasOwnProperty(key)) xhr.setRequestHeader(key, headers[key]); }
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try { var data = JSON.parse(xhr.responseText); processRecords(data.results || []); } catch(e) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--accent-red);">解析失败</td></tr>'; }
+        } else { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--accent-red);">拉取失败</td></tr>'; }
+      }
+    };
+    xhr.send();
   }
-  document.getElementById('questionStatsCard').style.display = 'block';
-  document.getElementById('statsCount').textContent = '共 ' + statsArr.length + ' 题有数据';
-  showToast('已加载 ' + statsArr.length + ' 题正确率数据');
 }
 
 function enterAdmin() {
@@ -2132,6 +2220,7 @@ function parseScores() {
   }
   document.getElementById('rankCard').style.display = 'block';
   state.rankRecords = records;
+  drawTeacherCharts(records);
   showToast('已汇总 ' + records.length + ' 人成绩');
 }
 function clearInput() { document.getElementById('scoreInput').value = ''; document.getElementById('rankCard').style.display = 'none'; document.getElementById('rankBody').innerHTML = ''; }
@@ -2201,6 +2290,7 @@ function loadBmobRank() {
       return a.time - b.time;
     });
     list = uniqueList;
+    state.rankRecords = list;
     var tbody = document.getElementById('bmobRankBody');
     tbody.innerHTML = '';
     var modeLabel = document.getElementById('rankModeFilter') ? document.getElementById('rankModeFilter').value : 'all';
@@ -2259,39 +2349,82 @@ function drawTeacherCharts(list) {
   if (!card || list.length === 0) return;
   card.style.display = 'block';
   
+  // 1. 得分分布 - 动态分箱适应实际分数范围
   var scoreCtx = document.getElementById('scoreChart').getContext('2d');
-  var scoreBins = { '60以下':0, '60-69':0, '70-79':0, '80-89':0, '90-99':0, '100':0 };
-  for (var i = 0; i < list.length; i++) {
-    var s = list[i].score || 0;
-    if (s < 60) scoreBins['60以下']++;
-    else if (s < 70) scoreBins['60-69']++;
-    else if (s < 80) scoreBins['70-79']++;
-    else if (s < 90) scoreBins['80-89']++;
-    else if (s < 100) scoreBins['90-99']++;
-    else scoreBins['100']++;
+  var scores = [];
+  for (var i = 0; i < list.length; i++) scores.push(list[i].score || 0);
+  var maxScore = Math.max.apply(Math, scores);
+  var minScore = Math.min.apply(Math, scores);
+  var binCount = 6;
+  var binWidth = Math.max(Math.ceil((maxScore - minScore + 1) / binCount), 10);
+  var scoreLabels = [], scoreData = [];
+  for (var b = 0; b < binCount; b++) {
+    var lo = minScore + b * binWidth;
+    var hi = lo + binWidth - 1;
+    var count = 0;
+    for (var i = 0; i < scores.length; i++) if (scores[i] >= lo && scores[i] <= hi) count++;
+    scoreLabels.push(lo + '-' + hi);
+    scoreData.push(count);
   }
-  drawBarChart(scoreCtx, Object.keys(scoreBins), Object.values(scoreBins), 'var(--accent-red-soft)', '人数');
+  drawBarChart(scoreCtx, scoreLabels, scoreData, 'var(--accent-red-soft)', '人数');
   
+  // 2. 正确率分布 - 基于 correct/total
   var accCtx = document.getElementById('accuracyChart').getContext('2d');
-  var accData = [0, 0, 0];
+  var accBins = { '\u226590%':0, '80-89%':0, '70-79%':0, '60-69%':0, '50-59%':0, '<50%':0 };
   for (var i = 0; i < list.length; i++) {
-    var s = list[i].score || 0;
-    if (s >= 80) accData[0]++;
-    else if (s >= 60) accData[1]++;
-    else accData[2]++;
+    var r = list[i];
+    var accuracy = 0;
+    if (r.correct !== undefined && r.total !== undefined && r.total > 0) {
+      accuracy = Math.round((r.correct / r.total) * 100);
+    } else if (maxScore > 0) {
+      accuracy = Math.round(((r.score || 0) / maxScore) * 100);
+    }
+    if (accuracy >= 90) accBins['\u226590%']++;
+    else if (accuracy >= 80) accBins['80-89%']++;
+    else if (accuracy >= 70) accBins['70-79%']++;
+    else if (accuracy >= 60) accBins['60-69%']++;
+    else if (accuracy >= 50) accBins['50-59%']++;
+    else accBins['<50%']++;
   }
-  drawPieChart(accCtx, ['优秀(≥80)', '及格(60-79)', '不及格(<60)'], accData, ['var(--accent-green)', 'var(--accent-gold)', '#f44336']);
+  drawBarChart(accCtx, Object.keys(accBins), Object.values(accBins), 'var(--accent-green-soft)', '人数');
   
+  // 3. 用时统计 - 动态分箱
   var timeCtx = document.getElementById('timeChart').getContext('2d');
-  var timeBins = { '<60秒':0, '60-120秒':0, '120-180秒':0, '>180秒':0 };
-  for (var i = 0; i < list.length; i++) {
-    var t = list[i].time || 0;
-    if (t < 60) timeBins['<60秒']++;
-    else if (t < 120) timeBins['60-120秒']++;
-    else if (t < 180) timeBins['120-180秒']++;
-    else timeBins['>180秒']++;
+  var times = [];
+  for (var i = 0; i < list.length; i++) times.push(list[i].time || 0);
+  var maxTime = Math.max.apply(Math, times);
+  var timeLabels, timeData;
+  if (maxTime <= 120) {
+    timeLabels = ['<30秒', '30-60秒', '60-90秒', '90-120秒'];
+    timeData = [0, 0, 0, 0];
+    for (var i = 0; i < times.length; i++) {
+      if (times[i] < 30) timeData[0]++;
+      else if (times[i] < 60) timeData[1]++;
+      else if (times[i] < 90) timeData[2]++;
+      else timeData[3]++;
+    }
+  } else if (maxTime <= 300) {
+    timeLabels = ['<60秒', '60-120秒', '120-180秒', '180-300秒', '>300秒'];
+    timeData = [0, 0, 0, 0, 0];
+    for (var i = 0; i < times.length; i++) {
+      if (times[i] < 60) timeData[0]++;
+      else if (times[i] < 120) timeData[1]++;
+      else if (times[i] < 180) timeData[2]++;
+      else if (times[i] < 300) timeData[3]++;
+      else timeData[4]++;
+    }
+  } else {
+    timeLabels = ['<60秒', '60-180秒', '180-300秒', '300-600秒', '>600秒'];
+    timeData = [0, 0, 0, 0, 0];
+    for (var i = 0; i < times.length; i++) {
+      if (times[i] < 60) timeData[0]++;
+      else if (times[i] < 180) timeData[1]++;
+      else if (times[i] < 300) timeData[2]++;
+      else if (times[i] < 600) timeData[3]++;
+      else timeData[4]++;
+    }
   }
-  drawBarChart(timeCtx, Object.keys(timeBins), Object.values(timeBins), 'var(--accent-gold)', '人数');
+  drawBarChart(timeCtx, timeLabels, timeData, 'var(--accent-gold)', '人数');
 }
 
 function drawBarChart(ctx, labels, data, color, yLabel) {
