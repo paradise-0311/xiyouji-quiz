@@ -1053,20 +1053,13 @@
     <div class="card-title">📖 学生答题</div>
     <div class="input-group"><label for="studentName">你的姓名</label><input type="text" id="studentName" placeholder="请输入姓名" maxlength="20"><div class="hint" id="accessHint"></div></div>
     <div class="input-group"><label for="phaseSelect">期数</label><select id="phaseSelect"><option value="1">第1期</option><option value="2">第2期</option><option value="3">第3期</option><option value="4">第4期</option></select></div>
-    <div class="input-group"><label for="quizMode">选择模式</label></div>
+    <div class="input-group"><label for="quizMode">答题模式</label></div>
     <div id="modeCards">
       <div class="mode-card active" data-mode="mixed" onclick="selectMode(this)">
         <div class="mode-icon">🌀</div>
         <div class="mode-info">
           <div class="mode-name">斗法·天命归我</div>
           <div class="mode-desc">比赛 · 20题：简单8+中等8+困难4</div>
-        </div>
-      </div>
-      <div class="mode-card" data-mode="challenge" onclick="selectMode(this)">
-        <div class="mode-icon">⚔️</div>
-        <div class="mode-info">
-          <div class="mode-name">修行·六根完满</div>
-          <div class="mode-desc">闯关 · 三关：基础→中等→困难</div>
         </div>
       </div>
     </div>
@@ -1244,7 +1237,6 @@
         <select id="rankModeFilter" onchange="loadBmobRank()" style="padding:6px 12px; border:2px solid var(--border-subtle); border-radius:var(--radius-sm); font-size:14px; background:var(--bg-card-hover); color:var(--text-primary); cursor:pointer;">
           <option value="all">全部模式</option>
           <option value="match">斗法·天命归我（比赛）</option>
-          <option value="challenge">修行·六根完满（闯关）</option>
         </select>
       </div>
     </div>
@@ -1743,7 +1735,8 @@ function startQuiz() {
 }
 function beginQuizAfterAccess(name, access) {
   state.name = name;
-  state.mode = document.getElementById('quizMode').value;
+  state.mode = 'mixed';
+  document.getElementById('quizMode').value = 'mixed';
   state.phase = parseInt(document.getElementById('phaseSelect').value) || 1;
   state.timeLimit = 15;
   state.currentIdx = 0;
