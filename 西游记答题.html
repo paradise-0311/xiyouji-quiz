@@ -1188,6 +1188,7 @@
       <div class="hint" id="rosterStatus">名单限制未启用；每人每周最多 10 次。</div>
     </div>
     <div class="action-btns">
+      <button class="btn btn-small btn-secondary" onclick="loadBmobRoster()">从 Bmob 拉取名单</button>
       <button class="btn btn-small btn-outline" onclick="clearRoster()">清空名单</button>
       <button class="btn btn-small btn-outline" onclick="clearWeeklyAttempts()">清空本周次数</button>
     </div>
@@ -1432,11 +1433,24 @@ function bmobHeaders() {
     'X-Bmob-REST-API-Key': state.cloud.bmobKey
   };
 }
+function getBmobHttp0Message() {
+  var origin = location.origin && location.origin !== 'null' ? location.origin : location.protocol;
+  var tips = [];
+  tips.push('浏览器没有收到 Bmob 响应（HTTP 0）');
+  if (location.protocol === 'file:') {
+    tips.push('当前是 file:// 本地打开，请用已上线的网址访问后台');
+  } else {
+    tips.push('请到 Bmob 控制台把当前网页域名加入 Web 安全域名/跨域白名单：' + origin);
+  }
+  tips.push('同时确认网址是 https，且浏览器没有拦截 api.bmobcloud.com');
+  return tips.join('；');
+}
 function bmobRequest(method, path, body) {
   return new Promise(function(resolve, reject) {
     if (!isBmobReady()) { reject(new Error('Bmob 未配置')); return; }
     var xhr = new XMLHttpRequest();
     xhr.open(method, 'https://api.bmobcloud.com/1/' + path, true);
+    xhr.timeout = 15000;
     var headers = bmobHeaders();
     for (var key in headers) { if (headers.hasOwnProperty(key)) xhr.setRequestHeader(key, headers[key]); }
     xhr.onreadystatechange = function() {
@@ -1444,10 +1458,12 @@ function bmobRequest(method, path, body) {
         var data = null;
         try { data = xhr.responseText ? JSON.parse(xhr.responseText) : {}; } catch(e) { data = {}; }
         if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+        else if (xhr.status === 0) reject(new Error(getBmobHttp0Message()));
         else reject(new Error((data && (data.error || data.msg)) || ('HTTP ' + xhr.status)));
       }
     };
-    xhr.onerror = function() { reject(new Error('网络请求失败')); };
+    xhr.onerror = function() { reject(new Error(getBmobHttp0Message())); };
+    xhr.ontimeout = function() { reject(new Error('Bmob 请求超时，请检查网络、Bmob 套餐状态和 Web 安全域名设置')); };
     xhr.send(body ? JSON.stringify(body) : null);
   });
 }
@@ -1456,6 +1472,25 @@ function bmobQuery(className, where, limit, count) {
   if (count) qs += '&count=1';
   if (where) qs += '&where=' + encodeURIComponent(JSON.stringify(where));
   return bmobRequest('GET', 'classes/' + className + qs);
+}
+function bmobQueryScoreBoard(pathSuffix, onBatch) {
+  var limit = 100;
+  var skip = 0;
+  var all = [];
+  function next() {
+    var path = 'classes/ScoreBoard?limit=' + limit + '&skip=' + skip + pathSuffix;
+    return bmobRequest('GET', path).then(function(data) {
+      var rows = data.results || [];
+      if (onBatch) onBatch(rows);
+      else all = all.concat(rows);
+      if (rows.length === limit) {
+        skip += limit;
+        return next();
+      }
+      return onBatch ? true : { results: all };
+    });
+  }
+  return next();
 }
 function checkBmobStudentAccess(name) {
   var nameKey = normalizeName(name);
@@ -1542,6 +1577,30 @@ function syncRosterToBmob(list) {
     showToast('名单已同步到 Bmob');
   }).catch(function(err) {
     showToast('Bmob 名单同步失败：' + err.message);
+  });
+}
+function loadBmobRoster() {
+  if (!isBmobReady()) { showToast('请先配置 Bmob AppID 和 AppKey'); return; }
+  showToast('正在从 Bmob 拉取名单...');
+  bmobQuery(BMOB_ROSTER_CLASS, { active: true }, 500, false).then(function(data) {
+    var rows = data.results || [];
+    var names = [];
+    var seen = {};
+    for (var i = 0; i < rows.length; i++) {
+      var name = rows[i].name || '';
+      var key = rows[i].nameKey || normalizeName(name);
+      if (!name || !key || seen[key]) continue;
+      seen[key] = true;
+      names.push(name);
+    }
+    names.sort(function(a, b) { return a.localeCompare(b, 'zh-CN'); });
+    saveRoster(names);
+    refreshRosterAdmin();
+    showToast('已从 Bmob 拉取名单：' + names.length + ' 人');
+  }).catch(function(err) {
+    showToast('Bmob 名单拉取失败：' + err.message);
+    var status = document.getElementById('rosterStatus');
+    if (status) status.textContent = 'Bmob 名单拉取失败：' + err.message + '。请检查表 XyjRoster 是否存在、REST Key 是否正确、表权限是否允许读取。';
   });
 }
 function clearBmobRoster() {
@@ -2276,6 +2335,7 @@ function submitToCloudDebug(data, type) {
       }
       var xhr = new XMLHttpRequest();
       xhr.open('POST', url, true);
+      xhr.timeout = 15000;
       for (var key in headers) { if (headers.hasOwnProperty(key)) xhr.setRequestHeader(key, headers[key]); }
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
@@ -2283,12 +2343,15 @@ function submitToCloudDebug(data, type) {
           var resp = xhr.responseText || '';
           if (isOk) {
             resolve({ success: true, status: xhr.status, response: resp });
+          } else if (xhr.status === 0) {
+            resolve({ success: false, error: getBmobHttp0Message(), status: xhr.status, response: resp });
           } else {
             resolve({ success: false, error: 'HTTP ' + xhr.status, status: xhr.status, response: resp });
           }
         }
       };
-      xhr.onerror = function() { resolve({ success: false, error: '网络请求失败', status: 0, response: '' }); };
+      xhr.onerror = function() { resolve({ success: false, error: getBmobHttp0Message(), status: 0, response: '' }); };
+      xhr.ontimeout = function() { resolve({ success: false, error: 'Bmob 请求超时，请检查网络、Bmob 套餐状态和 Web 安全域名设置', status: 0, response: '' }); };
       xhr.send(payload);
     } catch (e) { resolve({ success: false, error: e.message, status: 0, response: '' }); }
   });
@@ -2304,14 +2367,14 @@ function submitToCloud(data, type) {
 
 function autoSubmitToCloud(data) {
   state.submitted = true;
-  submitToCloud(data, state.cloud.type).then(function(ok) {
-    if (ok) {
+  submitToCloudDebug(data, state.cloud.type).then(function(result) {
+    if (result.success) {
       showToast('成绩已自动提交到云端');
       if (state.cloud.type === 'bmob') {
         getBmobRank(data.name, data.score, data.time);
       }
     } else {
-      showToast('云端提交失败，请检查网络');
+      showToast('云端提交失败：' + (result.error || '请检查网络'));
     }
   }).catch(function() {
     showToast('云端提交失败，请检查网络');
@@ -2321,27 +2384,11 @@ function autoSubmitToCloud(data) {
 function getBmobRank(myName, myScore, myTime) {
   var bmobId = state.cloud.bmobId;
   var bmobKey = state.cloud.bmobKey;
-  var url = 'https://api.bmobcloud.com/1/classes/ScoreBoard?limit=500&order=-score,time';
-  var headers = { 'X-Bmob-Application-Id': bmobId, 'X-Bmob-REST-API-Key': bmobKey };
   
   function doRequest() {
-    if (typeof fetch !== 'undefined') {
-      fetch(url, { method: 'GET', headers: headers }).then(function(res) { return res.json(); }).then(function(data) {
-        showRank(data);
-      }).catch(function() { });
-    } else {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, true);
-      for (var key in headers) { if (headers.hasOwnProperty(key)) xhr.setRequestHeader(key, headers[key]); }
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try { var data = JSON.parse(xhr.responseText); showRank(data); } catch (e) {}
-          }
-        }
-      };
-      xhr.send();
-    }
+    bmobQueryScoreBoard('&order=-score,time&keys=name,score,time,date,phase,mode', null)
+      .then(function(data) { showRank(data); })
+      .catch(function() {});
   }
   
   function showRank(data) {
@@ -2467,9 +2514,6 @@ function loadQuestionStats() {
   document.getElementById('questionStatsCard').style.display = 'block';
 
   // 从 Bmob 拉取所有成绩记录（包含 questionStats）
-  var url = 'https://api.bmobcloud.com/1/classes/ScoreBoard?limit=500&order=-score,time';
-  var headers = { 'X-Bmob-Application-Id': bmobId, 'X-Bmob-REST-API-Key': bmobKey };
-
   function processRecords(records) {
     var statsMap = {};
     var hasStats = false;
@@ -2522,6 +2566,18 @@ function loadQuestionStats() {
     document.getElementById('statsCount').textContent = '共 ' + statsArr.length + ' 题有数据，显示前 ' + displayCount + ' 题（最难优先）';
     showToast('已加载 ' + statsArr.length + ' 题正确率数据');
   }
+
+  bmobQueryScoreBoard('&order=-score,time&keys=questionStats', null)
+    .then(function(data) {
+      if (!data || !data.results) throw new Error('Bmob response has no results');
+      processRecords(data.results || []);
+    })
+    .catch(function(err) {
+      var message = err && err.message ? err.message : 'unknown error';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--accent-red);">Bmob load failed: ' + message + '</td></tr>';
+      showToast('Bmob 拉取失败：' + message);
+    });
+  return;
 
   if (typeof fetch !== 'undefined') {
     fetch(url, { method: 'GET', headers: headers })
@@ -2635,15 +2691,25 @@ function loadBmobRank() {
   showToast('正在从 Bmob 拉取成绩...');
   var mode = document.getElementById('rankModeFilter') ? document.getElementById('rankModeFilter').value : 'all';
   var phase = document.getElementById('rankPhaseFilter') ? document.getElementById('rankPhaseFilter').value : 'all';
-  var url = 'https://api.bmobcloud.com/1/classes/ScoreBoard?limit=500&order=-score,time';
   var where = {};
-  if (mode !== 'all') where.mode = mode;
   if (phase !== 'all') where.phase = parseInt(phase);
+  var pathSuffix = '&order=-score,time&keys=name,score,time,date,phase,mode';
   if (Object.keys(where).length > 0) {
-    url += '&where=' + encodeURIComponent(JSON.stringify(where));
+    pathSuffix += '&where=' + encodeURIComponent(JSON.stringify(where));
   }
   var headers = { 'X-Bmob-Application-Id': bmobId, 'X-Bmob-REST-API-Key': bmobKey };
   function doRequest() {
+    bmobQueryScoreBoard(pathSuffix, null).then(function(data) {
+      renderBmobRank(data);
+    }).catch(function(err) {
+      var message = err && err.message ? err.message : 'unknown error';
+      var tbody = document.getElementById('bmobRankBody');
+      if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--accent-red);">Bmob load failed: ' + message + '</td></tr>';
+      document.getElementById('bmobRankCard').style.display = 'block';
+      showToast('Bmob 成绩拉取失败：' + message);
+    });
+    return;
+
     if (typeof fetch !== 'undefined') {
       fetch(url, { method: 'GET', headers: headers }).then(function(res) { return res.json(); }).then(function(data) { renderBmobRank(data); }).catch(function() { showToast('拉取失败，请检查网络'); });
     } else {
@@ -2661,7 +2727,30 @@ function loadBmobRank() {
     }
   }
   function renderBmobRank(data) {
-    if (!data || !data.results) { showToast('无数据'); return; }
+    if (data && !data.results && (data.error || data.msg || data.code)) {
+      var errMsg = data.error || data.msg || ('Bmob 返回错误：' + data.code);
+      var errBody = document.getElementById('bmobRankBody');
+      if (errBody) errBody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--accent-red);">Bmob 返回错误：' + errMsg + '</td></tr>';
+      document.getElementById('bmobRankCard').style.display = 'block';
+      showToast('Bmob 返回错误：' + errMsg);
+      return;
+    }
+    if (data && data.results) {
+      var modeLabelForFilter = document.getElementById('rankModeFilter') ? document.getElementById('rankModeFilter').value : 'all';
+      if (modeLabelForFilter !== 'all') {
+        var filteredResults = [];
+        for (var rf = 0; rf < data.results.length; rf++) {
+          var itemMode = data.results[rf].mode;
+          if (modeLabelForFilter === 'match') {
+            if (!itemMode || itemMode === 'match' || itemMode === 'mixed') filteredResults.push(data.results[rf]);
+          } else if (itemMode === modeLabelForFilter) {
+            filteredResults.push(data.results[rf]);
+          }
+        }
+        data.results = filteredResults;
+      }
+    }
+    if (!data || !data.results) { showToast('Bmob 未返回成绩列表，请稍后重试'); return; }
     var list = data.results;
     // 同姓名保留最好成绩
     var bestMap = {};
@@ -2688,6 +2777,12 @@ function loadBmobRank() {
     var phaseText = phaseLabel === 'all' ? '全部期数' : ('第' + phaseLabel + '期');
     var labelEl = document.getElementById('rankFilterLabel');
     if (labelEl) labelEl.textContent = '当前显示：' + phaseText + ' · ' + modeText;
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);">当前筛选条件下暂无成绩</td></tr>';
+      document.getElementById('bmobRankCard').style.display = 'block';
+      showToast('当前筛选条件下暂无成绩');
+      return;
+    }
     for (var i = 0; i < list.length; i++) {
       var r = list[i];
       var tr = document.createElement('tr');
